@@ -26,44 +26,83 @@ try {
 <Layout title={`VOD ${vodId} - Event Timeline`} description={`View VOD ${vodId} with interactive event timeline`}>
         <script src= "https://player.twitch.tv/js/embed/v1.js"></script>
 	{vodData ? (
-		<div class="container mx-auto p-4">
-			<div class="mb-6">
-				<h1 class="text-3xl font-bold mb-2">VOD {vodId}</h1>
-				<p class="text-gray-600">
-					Duration: {Math.floor(vodData.vodDuration / 60)}m {vodData.vodDuration % 60}s 
-					| {vodData.totalEvents} events
-				</p>
+		<div class="container mx-auto p-6">
+			<!-- Header Section -->
+			<div class="mb-8">
+				<div class="flex items-center gap-4 mb-4">
+					<div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+						<span class="text-white text-xl font-bold">🎬</span>
+					</div>
+					<div>
+						<h1 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+							VOD {vodId}
+						</h1>
+						<div class="flex items-center gap-4 text-gray-400 mt-1">
+							<span class="flex items-center gap-1">
+								⏱️ {Math.floor(vodData.vodDuration / 60)}m {vodData.vodDuration % 60}s
+							</span>
+							<span class="flex items-center gap-1">
+								📊 {vodData.totalEvents} events
+							</span>
+						</div>
+					</div>
+				</div>
 			</div>
 			
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<div class="lg:sticky lg:top-4 lg:h-fit">
-					<TwitchChannelEmbed 
-						client:visible
-						video={vodId} 
-						id={vodId}
-						width="100%" 
-						height="400px" 
-					/>
+			<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+				<!-- Video Player Section -->
+				<div class="xl:sticky xl:top-6 xl:h-fit">
+					<div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700/50">
+						<div class="flex items-center gap-3 mb-4">
+							<div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+							<h2 class="text-xl font-bold text-white">Live Player</h2>
+						</div>
+						<div class="rounded-xl overflow-hidden shadow-2xl">
+							<TwitchChannelEmbed 
+								client:visible
+								video={vodId} 
+								id={vodId}
+								width="100%" 
+								height="400px" 
+							/>
+						</div>
+					</div>
 				</div>
 				
-				<div class="lg:max-h-screen lg:overflow-y-auto">
-					<EventTimeline client:load events={vodData.events} />
+				<!-- Event Timeline Section -->
+				<div class="xl:max-h-screen xl:overflow-y-auto">
+						<EventTimeline client:load events={vodData.events} />
 				</div>
 			</div>
 		</div>
 	) : error ? (
-		<div class="container mx-auto p-4">
-			<div class="bg-red-50 border border-red-200 rounded-lg p-6">
-				<h1 class="text-2xl font-bold text-red-800 mb-2">Error Loading VOD</h1>
-				<p class="text-red-700">{error}</p>
-				<a href="/" class="mt-4 inline-block text-blue-600 hover:underline">← Back to Home</a>
+		<div class="container mx-auto p-6">
+			<div class="bg-gradient-to-br from-red-900/30 to-pink-900/30 backdrop-blur-sm border border-red-500/30 rounded-2xl p-8 shadow-2xl">
+				<div class="text-center">
+					<div class="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+						<span class="text-white text-2xl">⚠️</span>
+					</div>
+					<h1 class="text-3xl font-bold text-red-300 mb-4">Error Loading VOD</h1>
+					<p class="text-red-200 mb-6 max-w-md mx-auto">{error}</p>
+					<a href="/" class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
+						← Back to Home
+					</a>
+				</div>
 			</div>
 		</div>
 	) : (
-		<div class="container mx-auto p-4">
+		<div class="container mx-auto p-6">
 			<div class="text-center">
-				<div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
-				<p class="text-lg">Loading VOD data...</p>
+				<div class="relative">
+					<div class="animate-spin rounded-full h-32 w-32 border-4 border-gray-700 border-t-purple-500 mx-auto mb-6"></div>
+					<div class="absolute inset-0 flex items-center justify-center">
+						<div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
+					</div>
+				</div>
+				<h2 class="text-2xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+					Loading VOD Data...
+				</h2>
+				<p class="text-gray-400">Fetching events and timeline information</p>
 			</div>
 		</div>
 	)}

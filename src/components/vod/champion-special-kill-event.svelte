@@ -22,22 +22,32 @@
 	}
 </script>
 
-<div class="bg-purple-50 border-l-4 border-purple-400 p-3">
-	<div class="flex items-center justify-between mb-2">
-		<h3 class="font-semibold text-purple-900">✨ Special Kill</h3>
-		<span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-			{getKillTypeDisplay(event.killType, event.multiKillLength)}
-		</span>
+<div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-purple-500/30 rounded-xl p-4 shadow-lg">
+	<div class="flex items-center justify-between mb-3">
+		<div class="flex items-center gap-3">
+			<div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+				<span class="text-white text-sm">✨</span>
+			</div>
+			<h3 class="font-bold text-purple-200">Special Kill</h3>
+		</div>
+		<div class="flex items-center gap-2">
+			<span class="text-xs bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full border border-purple-500/30 font-medium">
+				🌟 {getKillTypeDisplay(event.killType, event.multiKillLength)}
+			</span>
+		</div>
 	</div>
 	
-	<p class="text-sm text-purple-800 mb-1">
-		{event.championName} got a special kill
-	</p>
+	<div class="bg-purple-900/20 p-3 rounded-lg border border-purple-500/20 mb-3">
+		<p class="text-sm text-purple-100">
+			<span class="font-semibold text-purple-200">{event.championName}</span> 
+			<span class="text-purple-300">achieved a special kill</span>
+		</p>
+	</div>
 	
 	<button 
 		onclick={jumpToTimestamp}
-		class="mt-2 text-xs text-purple-600 hover:text-purple-800 hover:underline"
+		class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
 	>
-		Jump to timestamp
+		🎯 Jump to Highlight
 	</button>
 </div>

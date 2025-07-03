@@ -66,7 +66,7 @@
                     console.log('Event element is already in view, skipping scroll');
                     return;
                 }
-                
+
             }
 
             
@@ -107,44 +107,51 @@
 
 <div class="h-full flex flex-col">
 	<!-- Sticky Header -->
-	<div class="sticky top-0 bg-white z-10 border-b border-gray-200 pb-4 mb-4">
+	<div class="sticky p-5 top-0 bg-gray-900/90 backdrop-blur-sm z-10 border-b pb-4 -mb-1 rounded-t-xl border-transparent">
 		<div class="flex items-center justify-between">
-			<h2 class="text-2xl font-bold">Event Timeline</h2>
+			<h2 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+				⚡ Event Timeline
+			</h2>
 			<div class="flex items-center gap-2">
-				<label class="flex items-center gap-2 text-sm cursor-pointer">
+				<label class="flex items-center gap-2 text-sm cursor-pointer group">
 					<input 
 						type="checkbox" 
 						bind:checked={autoScrollEnabled}
 						onchange={() => autoScrollEnabledStore.set(autoScrollEnabled)}
-						class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+						class="rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500 focus:ring-2 transition-all"
 					/>
-					<span class="select-none">Auto-scroll</span>
+					<span class="select-none text-gray-300 group-hover:text-white transition-colors">
+						🎯 Auto-scroll
+					</span>
 				</label>
 			</div>
 		</div>
 	</div>
 
 	<!-- Scrollable Events Container -->
-	<div bind:this={eventsContainer} class="flex-1 space-y-4 overflow-y-auto">
+	<div bind:this={eventsContainer} class="flex-1 space-y-4 overflow-y-auto p-4 bg-gray-900/90" >
 		{#if sortedEvents.length === 0}
-			<div class="text-center py-8">
-				<p class="text-gray-500">No events found for this VOD.</p>
+			<div class="text-center py-12">
+				<div class="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+					<span class="text-gray-400 text-2xl">📭</span>
+				</div>
+				<p class="text-gray-400 text-lg">No events found for this VOD.</p>
 			</div>
 		{:else}
 			{#each sortedEvents as event (event.id)}
 				<div 
 					data-event-id={event.id}
-					class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow scroll-mt-4"
+					class="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 hover:bg-gray-800/60 hover:border-gray-600/50 transition-all duration-300 scroll-mt-4 shadow-lg"
 				>
-					<div class="flex items-start justify-between mb-2">
-					<button 
-						type="button"
-						class="text-sm font-medium text-blue-600 hover:underline italic hover:cursor-pointer"
-						onclick={() => seekToTs(event)}
-					>
-						{formatTimestamp(event.offsetSeconds)}
-					</button>
-						<span class="text-xs text-gray-500 capitalize">
+					<div class="flex items-start justify-between mb-3">
+						<button 
+							type="button"
+							class="text-sm hover:underline hover:cursor-pointer  font-mono font-medium text-purple-400 hover:text-purple-300 bg-purple-900/20 hover:bg-purple-900/40 px-3 py-1 rounded-lg transition-all duration-200 transform hover:scale-105"
+							onclick={() => seekToTs(event)}
+						>
+							{formatTimestamp(event.offsetSeconds)}
+						</button>
+						<span class="text-xs text-gray-500 capitalize bg-gray-900/50 px-2 py-1 rounded-full">
 							{event.type.replace('_', ' ').toLowerCase()}
 						</span> 
 					</div>
@@ -169,7 +176,7 @@
 						<GameEndEventComponent {event} />
 					{:else}
 						<div class="text-sm">
-							<h3 class="font-semibold">{event}</h3>
+							<h3 class="font-semibold text-gray-300">{event}</h3>
 						</div>
 					{/if}
 				</div>

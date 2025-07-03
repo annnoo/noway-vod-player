@@ -9,15 +9,24 @@
 	}
 </script>
 
-<div class="bg-slate-50 border-l-4 border-slate-400 p-3">
-	<div class="flex items-center justify-between mb-2">
-		<h3 class="font-semibold text-slate-900">🏁 Game End</h3>
-		<span class="text-sm px-2 py-1 rounded {event.isStreamerTeamWinner ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-			{event.isStreamerTeamWinner ? 'Victory' : 'Defeat'}
-		</span>
+<div class="bg-gradient-to-br from-slate-900/30 to-gray-900/30 backdrop-blur-sm border border-slate-500/30 rounded-xl p-4 shadow-lg">
+	<div class="flex items-center justify-between mb-3">
+		<div class="flex items-center gap-3">
+			<div class="w-8 h-8 bg-gradient-to-br from-slate-500 to-gray-500 rounded-lg flex items-center justify-center">
+				<span class="text-white text-sm">🏁</span>
+			</div>
+			<h3 class="font-bold text-slate-200">Game End</h3>
+		</div>
+		<div class="flex items-center gap-2">
+			<span class="text-sm px-3 py-1 rounded-full font-medium {event.isStreamerTeamWinner ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}">
+				{event.isStreamerTeamWinner ? '🏆 Victory' : '💀 Defeat'}
+			</span>
+		</div>
 	</div>
 	
-	<p class="text-sm text-slate-800 mb-1">
-		Game completed - {event.result}
-	</p>
+	<div class="bg-slate-900/20 p-3 rounded-lg border border-slate-500/20">
+		<p class="text-sm text-slate-100 font-medium">
+			Game completed - <span class="text-slate-200">{event.result}</span>
+		</p>
+	</div>
 </div>

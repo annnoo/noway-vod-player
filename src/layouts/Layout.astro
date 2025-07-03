@@ -8,7 +8,7 @@ const { title, description } = Astro.props;
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
@@ -18,15 +18,18 @@ const { title, description } = Astro.props;
 		{description && <meta name="description" content={description} />}
 		<script src="https://embed.twitch.tv/embed/v1.js"></script>
 	</head>
-	<body class="bg-gray-50 min-h-screen">
-		<header class="bg-white shadow-sm border-b">
+	<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-black min-h-screen text-gray-100">
+		<header class="bg-gray-900/50 backdrop-blur-sm shadow-lg border-b border-gray-700/50">
 			<div class="container mx-auto px-4 py-4">
 				<nav class="flex items-center justify-between">
-					<a href="/" class="text-xl font-bold text-gray-900 hover:text-blue-600">
-						VOD Player
+					<a href="/" class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hover:from-purple-300 hover:to-pink-300 transition-all duration-300">
+						🎮 VOD Player
 					</a>
-					<div class="flex items-center space-x-4">
-						<a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+					<div class="flex items-center space-x-6">
+						<a href="/" class="text-gray-300 hover:text-white transition-colors duration-200 font-medium">Home</a>
+						<div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+							<span class="text-white text-sm font-bold">V</span>
+						</div>
 					</div>
 				</nav>
 			</div>
@@ -36,10 +39,10 @@ const { title, description } = Astro.props;
 			<slot />
 		</main>
 		
-		<footer class="bg-white border-t mt-12">
+		<footer class="bg-gray-900/30 backdrop-blur-sm border-t border-gray-700/50 mt-12">
 			<div class="container mx-auto px-4 py-6">
-				<p class="text-center text-gray-600 text-sm">
-					© 2025 VOD Player. Built with Astro and Svelte.
+				<p class="text-center text-gray-400 text-sm">
+					© 2025 VOD Player. Built with ❤️ using Astro and Svelte.
 				</p>
 			</div>
 		</footer>
