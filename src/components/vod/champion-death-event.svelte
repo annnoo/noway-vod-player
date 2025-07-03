@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ChampionDeathVodEvent } from '../../lib/types';
 	import { twitchEventBus } from '../../lib/store';
+	import { getChampionImageUrl } from '../../lib/championUtils';
 
 	let { event }: { event: ChampionDeathVodEvent } = $props();
 
@@ -21,10 +22,24 @@
 	</div>
 	
 	<div class="bg-gray-900/20 p-3 rounded-lg border border-gray-500/20">
-		<p class="text-sm text-gray-100">
-			<span class="font-semibold text-gray-200">{event.championName}</span> 
-			<span class="text-gray-300">was eliminated by</span> 
-			<span class="font-semibold text-gray-200">{event.killerChampionName}</span>
-		</p>
+		<div class="flex items-center gap-3 mb-2">
+			<div class="flex items-center gap-2">
+				<img 
+					src={getChampionImageUrl(event.championId)} 
+					alt={event.championName}
+					class="w-8 h-8 rounded-full border-2 border-red-400/50 shadow-lg"
+				/>
+				<span class="font-semibold text-gray-200">{event.championName}</span>
+			</div>
+			<span class="text-gray-300">was eliminated by</span>
+			<div class="flex items-center gap-2">
+				<img 
+					src={getChampionImageUrl(event.killerChampionId)} 
+					alt={event.killerChampionName}
+					class="w-8 h-8 rounded-full border-2 border-green-400/50 shadow-lg"
+				/>
+				<span class="font-semibold text-gray-200">{event.killerChampionName}</span>
+			</div>
+		</div>
 	</div>
 </div>

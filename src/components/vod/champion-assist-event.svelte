@@ -3,6 +3,10 @@
 	import { twitchEventBus } from '../../lib/store';
 
 	let { event }: { event: ChampionAssistVodEvent } = $props();
+	
+	const assistImageUrl = `https://cdn.nowaycdn.com/images/champions/square/16x/${event.championId}.png`;
+	const killerImageUrl = `https://cdn.nowaycdn.com/images/champions/square/16x/${event.killerChampionId}.png`;
+	const victimImageUrl = `https://cdn.nowaycdn.com/images/champions/square/16x/${event.victimChampionId}.png`;
 
 	function jumpToTimestamp() {
 		twitchEventBus.emit(event.offsetSeconds);

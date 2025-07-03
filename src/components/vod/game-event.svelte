@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { GameEvent } from '../../lib/types';
 	import { twitchEventBus } from '../../lib/store';
+	import { getChampionImageUrl } from '../../lib/championUtils';
 
 	let { event }: { event: GameEvent } = $props();
 

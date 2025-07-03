@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ChampionSpecialKillVodEvent } from '../../lib/types';
 	import { twitchEventBus } from '../../lib/store';
+	import { getChampionImageUrl } from '../../lib/championUtils';
 
 	let { event }: { event: ChampionSpecialKillVodEvent } = $props();
 
@@ -38,10 +39,19 @@
 	</div>
 	
 	<div class="bg-purple-900/20 p-3 rounded-lg border border-purple-500/20 mb-3">
-		<p class="text-sm text-purple-100">
-			<span class="font-semibold text-purple-200">{event.championName}</span> 
-			<span class="text-purple-300">achieved a special kill</span>
-		</p>
+		<div class="flex items-center gap-3">
+			<img 
+				src={getChampionImageUrl(event.championId)} 
+				alt={event.championName}
+				class="w-10 h-10 rounded-full border-2 border-purple-400/50 shadow-lg"
+			/>
+			<div>
+				<p class="text-sm text-purple-100">
+					<span class="font-semibold text-purple-200">{event.championName}</span> 
+					<span class="text-purple-300">achieved a special kill</span>
+				</p>
+			</div>
+		</div>
 	</div>
 	
 	<button 

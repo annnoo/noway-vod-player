@@ -3,7 +3,8 @@
 	import { twitchEventBus } from '../../lib/store';
 
 	let { event }: { event: ChampionKillVodEvent } = $props();
-
+    const imageUrl =`https://cdn.nowaycdn.com/images/champions/square/16x/${event.championId}.png`;
+        const imageUrlV =`https://cdn.nowaycdn.com/images/champions/square/16x/${event.victimChampionId}.png`;
 	function jumpToTimestamp() {
 		twitchEventBus.emit(event.offsetSeconds);
 	}
@@ -27,10 +28,16 @@
 	</div>
 	
 	<div class="bg-red-900/20 p-3 rounded-lg border border-red-500/20">
-		<p class="text-sm text-red-100">
-			<span class="font-semibold text-red-200">{event.championName}</span> 
-			<span class="text-red-300">eliminated</span> 
-			<span class="font-semibold text-red-200">{event.victimChampionName}</span>
-		</p>
+		<div class="flex items-center gap-3 text-sm text-red-100">
+			<div class="flex items-center gap-2">
+				<img src={imageUrl} alt={event.championName} class="w-8 h-8 rounded-full border-2 border-green-400/50 shadow-lg" />
+				<span class="font-semibold text-red-200">{event.championName}</span>
+			</div>
+			<span class="text-red-300">eliminated</span>
+			<div class="flex items-center gap-2">
+				<img src={imageUrlV} alt={event.victimChampionName} class="w-8 h-8 rounded-full border-2 border-red-400/50 shadow-lg" />
+				<span class="font-semibold text-red-200">{event.victimChampionName}</span>
+			</div>
+		</div>
 	</div>
 </div>

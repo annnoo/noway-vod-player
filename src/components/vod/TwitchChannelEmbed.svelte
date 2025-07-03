@@ -72,7 +72,6 @@
 
 <style>
 	.twitch-embed {
-		width: 500px;
 		aspect-ratio: 16/9;
 		position: relative;
 	}
