@@ -44,26 +44,40 @@
 		
 		console.log('Current time:', currentTime);
 		console.log('Events before current time:', eventsBeforeCurrentTime.length);
-		console.log('Latest event:', latestEvent?.id, 'at', latestEvent?.offsetSeconds);
+		console.log('Latest event:',latestEvent?.title, latestEvent?.id, 'at', latestEvent?.offsetSeconds);
 		
 		return latestEvent;
 	}
 
 	function scrollToEvent(eventId: string) {
-		if (!eventsContainer || eventId === lastScrolledEventId) {
-			console.log('Skipping scroll - container missing or same event:', eventId);
-			return;
-		}
+
+        		const eventElement = eventsContainer.querySelector(`[data-event-id="${eventId}"]`);
 		
-		const eventElement = eventsContainer.querySelector(`[data-event-id="${eventId}"]`);
-		console.log('Found event element:', !!eventElement, 'for ID:', eventId);
+		console.log('Found event element:', eventElement, 'for ID:', eventId);
 		
 		if (eventElement) {
 			console.log('Scrolling to event:', eventId);
+            // If the event is not in the view, but was the previous event - scroll again
+            if (eventId === lastScrolledEventId) {
+                console.log("Check positioning")
+                // If teh element is visible, do not scroll again
+                const rect = eventElement.getBoundingClientRect();
+                if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                    console.log('Event element is already in view, skipping scroll');
+                    return;
+                }
+                
+            }
+
+            
 			eventElement.scrollIntoView({
 				behavior: 'smooth',
-				block: 'start'
 			});
+            setTimeout(() => {
+                // Ensure the event is fully visible after scroll
+
+                    eventElement.scrollIntoView({ behavior: 'smooth'});
+            }, 100); // Small delay to ensure scroll completes
 			lastScrolledEventId = eventId;
 		} else {
 			console.warn('Could not find event element with ID:', eventId);
@@ -74,7 +88,7 @@
 	currentTimeStore.subscribe((currentTime) => {
 		if (currentTime > 0 && autoScrollEnabled) {
 			const latestEvent = findLatestEvent(currentTime);
-			if (latestEvent && latestEvent.id !== lastScrolledEventId) {
+			if (latestEvent && latestEvent.id) {
 				scrollToEvent(latestEvent.id);
 			}
 		}
