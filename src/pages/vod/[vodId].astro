@@ -1,0 +1,70 @@
+---
+import type { ExtendedVodResponse } from '../../lib/types';
+import Layout from '../../layouts/Layout.astro';
+import TwitchChannelEmbed from '../../components/vod/TwitchChannelEmbed.svelte';
+import EventTimeline from '../../components/vod/event-timeline.svelte';
+import "../../styles/global.css";
+const { vodId } = Astro.params;
+
+let vodData: ExtendedVodResponse | null = null;
+let error: string | null = null;
+
+try {
+	const response = await fetch(`http://website-backend.noway.gg/vod/${vodId}/events`);
+	
+	if (!response.ok) {
+		throw new Error(`Failed to load VOD data: ${response.status} ${response.statusText}`);
+	}
+	
+	vodData = await response.json();
+} catch (err) {
+	console.error('Error loading VOD data:', err);
+	error = err instanceof Error ? err.message : 'Unknown error occurred';
+}
+---
+    <script is:inline src= "https://player.twitch.tv/js/embed/v1.js"></script>
+<Layout title={`VOD ${vodId} - Event Timeline`} description={`View VOD ${vodId} with interactive event timeline`}>
+        <script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+	{vodData ? (
+		<div class="container mx-auto p-4">
+			<div class="mb-6">
+				<h1 class="text-3xl font-bold mb-2">VOD {vodId}</h1>
+				<p class="text-gray-600">
+					Duration: {Math.floor(vodData.vodDuration / 60)}m {vodData.vodDuration % 60}s 
+					| {vodData.totalEvents} events
+				</p>
+			</div>
+			
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<div class="lg:sticky lg:top-4 lg:h-fit">
+					<TwitchChannelEmbed 
+						client:visible
+						video={vodId} 
+						id={vodId}
+						width="100%" 
+						height="400px" 
+					/>
+				</div>
+				
+				<div class="lg:max-h-screen lg:overflow-y-auto">
+					<EventTimeline client:load events={vodData.events} />
+				</div>
+			</div>
+		</div>
+	) : error ? (
+		<div class="container mx-auto p-4">
+			<div class="bg-red-50 border border-red-200 rounded-lg p-6">
+				<h1 class="text-2xl font-bold text-red-800 mb-2">Error Loading VOD</h1>
+				<p class="text-red-700">{error}</p>
+				<a href="/" class="mt-4 inline-block text-blue-600 hover:underline">← Back to Home</a>
+			</div>
+		</div>
+	) : (
+		<div class="container mx-auto p-4">
+			<div class="text-center">
+				<div class="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+				<p class="text-lg">Loading VOD data...</p>
+			</div>
+		</div>
+	)}
+</Layout>

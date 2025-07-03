@@ -1,0 +1,47 @@
+---
+export interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+		{description && <meta name="description" content={description} />}
+		<script src="https://embed.twitch.tv/embed/v1.js"></script>
+	</head>
+	<body class="bg-gray-50 min-h-screen">
+		<header class="bg-white shadow-sm border-b">
+			<div class="container mx-auto px-4 py-4">
+				<nav class="flex items-center justify-between">
+					<a href="/" class="text-xl font-bold text-gray-900 hover:text-blue-600">
+						VOD Player
+					</a>
+					<div class="flex items-center space-x-4">
+						<a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
+					</div>
+				</nav>
+			</div>
+		</header>
+		
+		<main class="flex-1">
+			<slot />
+		</main>
+		
+		<footer class="bg-white border-t mt-12">
+			<div class="container mx-auto px-4 py-6">
+				<p class="text-center text-gray-600 text-sm">
+					© 2025 VOD Player. Built with Astro and Svelte.
+				</p>
+			</div>
+		</footer>
+	</body>
+</html>

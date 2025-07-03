@@ -3,46 +3,24 @@
 import '../styles/global.css';
 
 // Component Imports
-// For JSX components, all the common ways of exporting (under a namespace, specific export, default export etc) are supported!
-import * as react from '../components/react/ReactCounter';
-import { PreactCounter } from '../components/preact/PreactCounter';
-import SolidCounter from '../components/solid/SolidCounter';
-
-import VueCounter from '../components/vue/VueCounter.vue';
-import SvelteCounter from '../components/svelte/SvelteCounter.svelte';
-
-// Full Astro Component Syntax:
-// https://docs.astro.build/basics/astro-components/
+import Layout from '../layouts/Layout.astro';
+import TwitchChannelEmbed from '../components/vod/TwitchChannelEmbed.svelte';
 ---
+<Layout title="VOD Player" description="View Twitch VODs with interactive event timelines">
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-	</head>
-	<body>
-		<main>
-			<react.Counter client:visible>
-				<h1>Hello from React!</h1>
-			</react.Counter>
-
-			<PreactCounter client:visible>
-				<h1>Hello from Preact!</h1>
-			</PreactCounter>
-
-			<SolidCounter client:visible>
-				<h1>Hello from Solid!</h1>
-			</SolidCounter>
-
-			<VueCounter client:visible>
-				<h1>Hello from Vue!</h1>
-			</VueCounter>
-
-			<SvelteCounter client:visible>
-				<h1>Hello from Svelte!</h1>
-			</SvelteCounter>
-		</main>
-	</body>
-</html>
+    <script src= "https://player.twitch.tv/js/embed/v1.js"></script>
+	<div class="container mx-auto p-4">
+		<h1 class="text-3xl font-bold mb-6">VOD Player</h1>
+		<p class="text-gray-600 mb-4">Welcome to the VOD Player. View VODs with interactive event timelines.</p>
+		
+		<div class="mb-6">
+			<h2 class="text-xl font-semibold mb-2">Demo</h2>
+			<TwitchChannelEmbed client:load video="2481364998" width="100%" height="500px" />
+		</div>
+		
+		<div class="mt-6">
+			<h2 class="text-xl font-semibold mb-2">Usage</h2>
+			<p class="text-gray-600">Navigate to <code class="bg-gray-100 px-2 py-1 rounded">/vod/[vodId]</code> to view a specific VOD with its event timeline.</p>
+		</div>
+	</div>
+</Layout>

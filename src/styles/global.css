@@ -1,21 +1,31 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html,
 body {
-	font-family: system-ui;
+	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	margin: 0;
+	padding: 0;
 }
 
-body {
-	padding: 2rem;
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+	width: 8px;
 }
 
-.counter {
-	display: grid;
-	font-size: 2em;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	margin-top: 2em;
-	place-items: center;
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
 }
 
-.counter-message {
-	text-align: center;
+::-webkit-scrollbar-thumb {
+	background: #c1c1c1;
+	border-radius: 4px;
 }
+
+::-webkit-scrollbar-thumb:hover {
+	background: #a1a1a1;
+}
+
