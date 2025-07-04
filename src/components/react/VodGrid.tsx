@@ -63,8 +63,12 @@ const VodGrid: React.FC<VodGridProps> = ({
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 1;
+    console.log(diffDays, dateString, now.toISOString(), date.toISOString());
     
+    if(diffDays === 0 ) {
+      return 'Today';
+    }
     if (diffDays === 1) {
       return 'Yesterday';
     } else if (diffDays < 7) {
@@ -169,13 +173,15 @@ const VodGrid: React.FC<VodGridProps> = ({
             className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden hover:bg-gray-800/60 hover:border-gray-600/50 transition-all duration-300 shadow-lg group"
           >
             <div className="relative">
+                <a 
+                  href={getUrl(video.id)}>
               <img 
                 src={getThumbnailUrl(video.thumbnailUrl)} 
                 alt={video.title}
                 className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
-              
+              </a>
               {/* Duration overlay */}
               <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                 {formatDuration(video.duration)}
