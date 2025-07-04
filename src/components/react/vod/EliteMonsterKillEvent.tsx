@@ -21,11 +21,11 @@ const EliteMonsterKillEventComponent: React.FC<EliteMonsterKillEventComponentPro
           <h3 className="font-bold text-orange-200">Elite Monster Kill</h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+          <span className={cn(`text-xs px-3 py-1 rounded-full font-medium ${
             event.isStreamerTeam 
               ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
               : 'bg-red-500/20 text-red-300 border border-red-500/30'
-          }`}>
+          }`)}>
             {event.isStreamerTeam ? '🛡️ Allied' : '⚔️ Enemy'}
           </span>
         </div>

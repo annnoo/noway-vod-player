@@ -11,14 +11,14 @@ import ChampionSpecialKillEventComponent from './ChampionSpecialKillEvent';
 import EliteMonsterKillEventComponent from './EliteMonsterKillEvent';
 import BuildingKillEventComponent from './BuildingKillEvent';
 import GameEndEventComponent from './GameEndEvent';
-
+import { VList } from "virtua";
 interface EventTimelineProps {
   events: VodEvent[];
 }
 
 const EventTimeline: React.FC<EventTimelineProps> = ({ events }) => {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
-  const eventsContainerRef = useRef<HTMLDivElement>(null);
+  const eventsContainerRef = useRef<any>(null);
   const lastScrolledEventId = useRef<string>('');
   
   // Sort events by timestamp
@@ -48,34 +48,9 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events }) => {
   };
 
   const scrollToEvent = (eventId: string) => {
-    const eventElement = eventsContainerRef.current?.querySelector(`[data-event-id="${eventId}"]`);
     
-    console.log('Found event element:', eventElement, 'for ID:', eventId);
-    
-    if (eventElement) {
-      console.log('Scrolling to event:', eventId);
-      // If the event is not in the view, but was the previous event - scroll again
-      if (eventId === lastScrolledEventId.current) {
-        console.log("Check positioning");
-        // If the element is visible, do not scroll again
-        const rect = eventElement.getBoundingClientRect();
-        if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-          console.log('Event element is already in view, skipping scroll');
-          return;
-        }
-      }
-
-      eventElement.scrollIntoView({
-        behavior: 'smooth',
-      });
-      setTimeout(() => {
-        // Ensure the event is fully visible after scroll
-        eventElement.scrollIntoView({ behavior: 'smooth' });
-      }, 100); // Small delay to ensure scroll completes
-      lastScrolledEventId.current = eventId;
-    } else {
-      console.warn('Could not find event element with ID:', eventId);
-    }
+    const index = sortedEvents.findIndex(event => event.id === eventId);
+    eventsContainerRef!.current.scrollToIndex(index, {align: 'start', behavior: 'smooth', smooth: "smooth"});
   };
 
   const seekToTs = (event: VodEvent) => {
@@ -157,7 +132,7 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events }) => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-screen">
       {/* Sticky Header */}
       <div className="sticky p-5 top-0 bg-gray-900/90 backdrop-blur-sm z-10 border-b pb-4 -mb-1 rounded-t-xl border-transparent">
         <div className="flex items-center justify-between">
@@ -181,16 +156,8 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events }) => {
       </div>
 
       {/* Scrollable Events Container */}
-      <div ref={eventsContainerRef} className="flex-1 space-y-4 overflow-y-auto p-4 bg-gray-900/90">
-        {sortedEvents.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-gray-400 text-2xl">📭</span>
-            </div>
-            <p className="text-gray-400 text-lg">No events found for this VOD.</p>
-          </div>
-        ) : (
-          sortedEvents.map((event) => (
+            <VList style={{height: '100vh'}} ref={eventsContainerRef} className="min-h-20 flex-1 space-y-4 overflow-y-auto p-4 bg-gray-900/90">
+          {sortedEvents.map((event) => (
             <div 
               key={event.id}
               data-event-id={event.id}
@@ -211,10 +178,11 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events }) => {
               
               {renderEventComponent(event)}
             </div>
-          ))
-        )}
+          ))}
+</VList>
+
+      <div className="sticky p-5 top-0 bg-gray-900/90 backdrop-blur-sm z-10 border-b pb-4 -mb-1 rounded-b-xl border-transparent"></div>
       </div>
-    </div>
   );
 };
 
