@@ -4,6 +4,20 @@
   "exclude": ["dist"],
   "compilerOptions": {
     // Needed for TypeScript intellisense in the template inside Vue files
-    "jsx": "preserve"
-  }
+    "jsx": "preserve",
+
+      "baseUrl": ".",
+       "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+      "baseUrl": ".",
+   "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+
 }
