@@ -56,8 +56,9 @@ try {
 						</div>
 					</div>
 				</div>
-					<div class="flex items-center h-full flex-col ml-auto">
 
+{playlist && (
+					<div class="flex items-center h-full flex-col ml-auto">
 
     <div class="rounded-lg p-3">
 
@@ -74,7 +75,7 @@ try {
 		}
       />
             </div>
-            <a 
+			       <a 
               href={playlist?.spotifyUrl} 
               target="_blank" 
               rel="noopener noreferrer"
@@ -85,6 +86,10 @@ try {
             </a>
 
 							</div>
+
+)}
+
+     
 			</div>
 			
 			<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
