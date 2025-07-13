@@ -8,6 +8,7 @@ declare namespace Twitch {
     muted?: boolean;
     parent: string | string[];
     playsinline?: boolean;
+    time?: string;
   }
 
   class Player {

@@ -16,8 +16,15 @@ interface TwitchChannelEmbedProps {
   muted?: boolean;
   id?: string;
   video?: string;
+  offsetSeconds?: number;
 }
-
+const offsetSecondsToHMS = (offsetSeconds: number): string => {
+  const hours = Math.floor(offsetSeconds / 3600);
+  const minutes = Math.floor((offsetSeconds % 3600) / 60);
+  const seconds = offsetSeconds % 60;
+  
+  return `${hours}h${minutes.toString()}m${seconds.toString()}s`;
+}
 const TwitchChannelEmbed: React.FC<TwitchChannelEmbedProps> = ({
   channel,
   width = '100%',
@@ -25,11 +32,14 @@ const TwitchChannelEmbed: React.FC<TwitchChannelEmbedProps> = ({
   autoplay,
   muted,
   id,
-  video
+  video,
+  offsetSeconds = 0
 }) => {
   const playerRef = useRef<any>(null);
   const timeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const playerId = id || 'default';
+
+  const offsetString = offsetSeconds ? `${offsetSecondsToHMS(offsetSeconds)}` : '';
 
   useEffect(() => {
     // Initialize Twitch Player
@@ -40,6 +50,7 @@ const TwitchChannelEmbed: React.FC<TwitchChannelEmbedProps> = ({
         height,
         autoplay,
         muted,
+        time: offsetString,
         parent: []
       });
 

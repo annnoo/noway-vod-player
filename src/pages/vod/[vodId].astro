@@ -6,6 +6,7 @@ import EventTimeline from '../../components/react/vod/EventTimeline';
 import "../../styles/global.css";
 import { Spotify } from '@/components/react';
 const { vodId } = Astro.params;
+const offset = Astro.url.searchParams.get('offset') || '0';
 
 let vodData: ExtendedVodResponse | null = null;
 let error: string | null = null;
@@ -105,6 +106,8 @@ try {
 								client:visible
 								video={vodId} 
 								id={vodId}
+								offsetSeconds={offset ? parseInt(offset) : 0}
+								
 								width="100%" 
 								height="400px" 
 							/>
