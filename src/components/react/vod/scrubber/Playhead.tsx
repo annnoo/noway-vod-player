@@ -8,7 +8,6 @@ interface PlayheadProps {
 }
 
 const Playhead: React.FC<PlayheadProps> = ({ currentTime, viewport }) => {
-  // If playhead is outside the visible viewport range, don't show it
   if (currentTime < viewport.viewStart || currentTime > viewport.viewEnd) {
     return null;
   }
@@ -17,11 +16,11 @@ const Playhead: React.FC<PlayheadProps> = ({ currentTime, viewport }) => {
 
   return (
     <div
-      className="absolute top-0 bottom-0 w-0.5 bg-pink-500 shadow-[0_0_8px_#ec4899] z-20 pointer-events-none transition-all duration-75"
+      className="absolute top-0 bottom-0 w-0.5 bg-brand shadow-[0_0_8px_var(--color-brand-glow)] z-20 pointer-events-none transition-all duration-75"
       style={{ left: `${left}%` }}
     >
       {/* Visual Handle at top */}
-      <div className="absolute top-0 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-pink-500 rounded-full border-2 border-white shadow-lg" />
+      <div className="absolute top-0 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-brand rounded-full border-2 border-white shadow-lg" />
     </div>
   );
 };

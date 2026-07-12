@@ -25,14 +25,14 @@ const ScrubberToolbar: React.FC<ScrubberToolbarProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-900 border border-white/10 border-b-0 rounded-t-2xl shadow-xl backdrop-blur-sm select-none">
       <div className="flex items-center gap-3">
-        <h2 className="text-lg font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-          ⚡ Multitrack Timeline
+        <h2 className="text-lg font-black uppercase tracking-widest text-brand drop-shadow-[0_0_8px_var(--color-brand-glow)] italic skew-x-[-12deg]">
+          ⚡ Timeline
         </h2>
       </div>
 
       {/* Track Show/Hide Toggles */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mr-1">Tracks:</span>
+        <span className="text-[10px] text-gray-450 uppercase tracking-wider font-extrabold mr-1 italic">Tracks:</span>
         {tracks.map((track) => {
           const isGame = track.id === 'games';
           return (
@@ -40,11 +40,11 @@ const ScrubberToolbar: React.FC<ScrubberToolbarProps> = ({
               key={track.id}
               onClick={() => !isGame && onToggleTrack(track.id)}
               disabled={isGame}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
                 track.visible
                   ? 'bg-slate-800 text-white border-white/15 hover:bg-slate-700'
-                  : 'bg-slate-950/40 text-gray-500 border-white/5 hover:text-gray-400 hover:bg-slate-900'
-              } ${isGame ? 'opacity-90 cursor-not-allowed border-purple-500/20' : ''}`}
+                  : 'bg-slate-950/40 text-gray-500 border-white/5 hover:text-gray-450 hover:bg-slate-900'
+              } ${isGame ? 'opacity-90 cursor-not-allowed border-brand/20 text-brand/80' : ''}`}
             >
               <span>{track.visible ? '👁️' : '🕶️'}</span>
               <span>{track.label}</span>
@@ -58,10 +58,10 @@ const ScrubberToolbar: React.FC<ScrubberToolbarProps> = ({
         {/* Auto Follow playhead */}
         <button
           onClick={onToggleAutoFollow}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider border transition-all cursor-pointer italic skew-x-[-12deg] ${
             autoFollow
-              ? 'bg-pink-600 border-pink-500 text-white hover:bg-pink-500 shadow-md shadow-pink-600/10'
-              : 'bg-slate-950 border-white/10 text-gray-400 hover:bg-slate-800'
+              ? 'bg-brand border-brand text-slate-950 hover:brightness-110 shadow-md shadow-brand-glow'
+              : 'bg-slate-950 border-white/10 text-gray-400 hover:bg-slate-850'
           }`}
         >
           <span>🎯</span>
@@ -69,12 +69,12 @@ const ScrubberToolbar: React.FC<ScrubberToolbarProps> = ({
         </button>
 
         {/* Zoom Operations */}
-        <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-white/5 text-xs">
-          <span className="text-gray-500 font-medium px-1">Scale:</span>
+        <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-white/5 text-xs font-bold">
+          <span className="text-gray-500 font-extrabold px-1 uppercase text-[9px] tracking-wider italic">Scale:</span>
           <button
             type="button"
             onClick={onZoomOut}
-            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer font-bold"
+            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer font-extrabold"
             title="Zoom Out"
           >
             -
@@ -82,7 +82,7 @@ const ScrubberToolbar: React.FC<ScrubberToolbarProps> = ({
           <button
             type="button"
             onClick={onZoomReset}
-            className="px-1.5 hover:bg-white/10 rounded text-[10px] text-pink-400 font-mono cursor-pointer"
+            className="px-1.5 hover:bg-white/10 rounded text-[10px] text-brand font-mono cursor-pointer"
             title="Reset Zoom"
           >
             {zoomLevel.toFixed(1)}x
@@ -90,7 +90,7 @@ const ScrubberToolbar: React.FC<ScrubberToolbarProps> = ({
           <button
             type="button"
             onClick={onZoomIn}
-            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer font-bold"
+            className="w-5 h-5 rounded hover:bg-white/10 flex items-center justify-center text-gray-300 hover:text-white cursor-pointer font-extrabold"
             title="Zoom In"
           >
             +

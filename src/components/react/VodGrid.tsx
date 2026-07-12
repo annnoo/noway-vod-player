@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tooltip } from '../ui/tooltip';
 import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 import '../../styles/global.css';
+
 interface TwitchVideo {
   thumbnailUrl: string;
   id: string;
@@ -21,13 +22,6 @@ interface TwitchVideo {
   duration: string;
 }
 
-interface TwitchVideosResponse {
-  data: TwitchVideo[];
-  pagination?: {
-    cursor?: string;
-  };
-}
-
 interface VodGridProps {
   username: string;
   limit?: number;
@@ -42,7 +36,6 @@ const VodGrid: React.FC<VodGridProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const formatDuration = (duration: string): string => {
-    // Duration format: PT1H2M3S
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return duration;
     
@@ -64,9 +57,8 @@ const VodGrid: React.FC<VodGridProps> = ({
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) - 1;
-    console.log(diffDays, dateString, now.toISOString(), date.toISOString());
     
-    if(diffDays === 0 ) {
+    if (diffDays === 0) {
       return 'Today';
     }
     if (diffDays === 1) {
@@ -86,7 +78,6 @@ const VodGrid: React.FC<VodGridProps> = ({
   };
 
   const getThumbnailUrl = (url: string): string => {
-    // Replace %{width} and %{height} with actual dimensions
     return url.replace('%{width}', '320').replace('%{height}', '180');
   };
 
@@ -94,13 +85,8 @@ const VodGrid: React.FC<VodGridProps> = ({
     try {
       setLoading(true);
       setError(null);
-
       const response = await fetch(`/api/twitch/videos?username=${username}`);
-      
-    
-
       const videosData = await response.json();
-      console.log('Fetched videos:', videosData);
       setVideos(videosData.videos);
     } catch (err) {
       console.error('Error fetching videos:', err);
@@ -115,6 +101,7 @@ const VodGrid: React.FC<VodGridProps> = ({
     const protocol = window.location.protocol;
     return `${protocol}//${host}/vod/${id}`;
   }
+
   useEffect(() => {
     fetchVideos();
   }, [username, limit]);
@@ -122,7 +109,7 @@ const VodGrid: React.FC<VodGridProps> = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand shadow-[0_0_10px_var(--color-brand-glow)]"></div>
       </div>
     );
   }
@@ -130,13 +117,13 @@ const VodGrid: React.FC<VodGridProps> = ({
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-red-650 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
           <span className="text-red-200 text-2xl">⚠️</span>
         </div>
-        <p className="text-red-400 text-lg mb-4">{error}</p>
+        <p className="text-red-400 text-lg mb-4 font-bold">{error}</p>
         <button 
           onClick={fetchVideos}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+          className="bg-brand text-slate-950 font-black uppercase tracking-widest px-6 py-2.5 rounded-xl hover:brightness-110 transition-all cursor-pointer italic skew-x-[-12deg] shadow-[0_0_10px_var(--color-brand-glow)]"
         >
           Try Again
         </button>
@@ -147,21 +134,21 @@ const VodGrid: React.FC<VodGridProps> = ({
   if (videos.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-gray-400 text-2xl">📺</span>
         </div>
-        <p className="text-gray-400 text-lg">No VODs found for {username}</p>
+        <p className="text-gray-400 text-lg font-bold">No VODs found for {username}</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl mt-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-          📺 {username}'s VODs
+        <h1 className="text-3xl font-black uppercase tracking-tighter text-white mb-2 italic skew-x-[-12deg]">
+          📺 <span className="text-brand drop-shadow-[0_0_12px_var(--color-brand-glow)]">{username}&apos;s VODs</span>
         </h1>
-        <p className="text-gray-400">
+        <p className="text-white/40 font-bold uppercase tracking-wider text-xs italic ml-1">
           {videos.length} recent stream{videos.length !== 1 ? 's' : ''} found
         </p>
       </div>
@@ -170,54 +157,52 @@ const VodGrid: React.FC<VodGridProps> = ({
         {videos.map((video) => (
           <div 
             key={video.id}
-            className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden hover:bg-gray-800/60 hover:border-gray-600/50 transition-all duration-300 shadow-lg group"
+            className="bg-[#0c0c0c] border border-white/10 rounded-[28px] overflow-hidden hover:border-brand/40 shadow-xl transition-all duration-300 transform-gpu hover:scale-[1.02] group flex flex-col justify-between"
           >
-            <div className="relative">
-                <a 
-                  href={getUrl(video.id)}>
-              <img 
-                src={getThumbnailUrl(video.thumbnailUrl)} 
-                alt={video.title}
-                className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              />
+            <div className="relative overflow-hidden aspect-video bg-black">
+              <a href={getUrl(video.id)}>
+                <img 
+                  src={getThumbnailUrl(video.thumbnailUrl)} 
+                  alt={video.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-350"
+                  loading="lazy"
+                />
               </a>
               {/* Duration overlay */}
-              <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+              <div className="absolute bottom-2.5 right-2.5 bg-black/80 backdrop-blur-sm border border-white/10 text-white font-mono text-[10px] font-bold px-2 py-0.5 rounded-md">
                 {formatDuration(video.duration)}
               </div>
               
               {/* View count overlay */}
-              <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+              <div className="absolute top-2.5 left-2.5 bg-[#0a0a0a]/80 backdrop-blur-sm border border-white/10 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                 <span>👁️</span>
                 <span>{video.viewCount.toLocaleString()}</span>
               </div>
             </div>
             
-            <div className="p-4">
-              <h3 className="font-semibold text-white text-sm mb-2 line-clamp-2 leading-tight">
-                {video.title}
-              </h3>
-              
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
-                <Tooltip >
-                    <TooltipTrigger>
-
-                        <span>{formatDate(video.createdAt)}</span>
+            <div className="p-5 flex flex-col justify-between flex-grow">
+              <div>
+                <h3 className="font-bold text-white text-sm mb-2.5 line-clamp-2 leading-tight group-hover:text-brand transition-colors">
+                  {video.title}
+                </h3>
+                
+                <div className="flex items-center justify-between text-[11px] text-white/40 font-extrabold uppercase italic tracking-wider mb-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="hover:text-white cursor-help">{formatDate(video.createdAt)}</span>
                     </TooltipTrigger>
-                    <TooltipContent>
-                        <p className="text-gray-200">{new Date(video.createdAt).toLocaleDateString()}</p>
+                    <TooltipContent className="bg-slate-900 border border-white/10 p-2 rounded-lg shadow-xl text-xs text-white">
+                      <p>{new Date(video.createdAt).toLocaleDateString()}</p>
                     </TooltipContent>
-                     
-                     
-                                    </Tooltip>
-                <span className="capitalize">{video.type}</span>
+                  </Tooltip>
+                  <span className="bg-white/5 px-2 py-0.5 rounded border border-white/5">{video.type}</span>
+                </div>
               </div>
               
               <div className="flex gap-2">
                 <a 
                   href={`/vod/${video.id}`}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-colors text-center"
+                  className="flex-1 bg-brand text-slate-950 font-black uppercase tracking-wider text-xs px-4 py-2.5 rounded-xl transition-all duration-300 hover:brightness-110 text-center shadow-md shadow-brand-glow italic skew-x-[-12deg]"
                 >
                   View Timeline
                 </a>

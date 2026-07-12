@@ -169,8 +169,8 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
         return <GameEndEventComponent event={event} />;
       default:
         return (
-          <div className="p-3 bg-slate-900/60 rounded-xl border border-white/5">
-            <h3 className="font-semibold text-gray-300 truncate">{event.title}</h3>
+          <div className="p-4 bg-[#0c0c0c] border border-white/10 rounded-[32px]">
+            <h3 className="font-bold text-white truncate">{event.title}</h3>
             {event.description && <p className="text-xs text-gray-400 mt-1">{event.description}</p>}
           </div>
         );
@@ -194,16 +194,16 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
         
         {/* Active Event Card details (Left) */}
         <div className="flex-1 lg:w-5/12 flex flex-col">
-          <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-sm flex flex-col h-full justify-between">
+          <div className="bg-[#0c0c0c] border border-white/10 rounded-[32px] p-6 shadow-xl flex flex-col h-full justify-between">
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
-                <span className="text-sm font-semibold tracking-wide text-pink-400 uppercase">
+                <span className="text-sm font-black uppercase tracking-widest text-brand drop-shadow-[0_0_8px_var(--color-brand-glow)] italic">
                   📌 Active Event
                 </span>
                 {activeEvent && (
                   <button 
                     onClick={() => seekToTime(activeEvent.offsetSeconds)}
-                    className="text-xs font-mono font-medium text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/20 px-3 py-1 rounded-lg border border-pink-500/20 transition-all cursor-pointer"
+                    className="text-xs font-black uppercase tracking-wider text-brand hover:text-brand bg-brand/10 hover:bg-brand/20 px-3.5 py-1.5 rounded-lg border border-brand/30 transition-all cursor-pointer italic skew-x-[-12deg] shadow-[0_0_10px_var(--color-brand-glow)]"
                   >
                     ⏱️ Play from {formatTimestamp(activeEvent.offsetSeconds)}
                   </button>
@@ -224,12 +224,12 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
                   
                   return (
                     <div className="flex flex-col flex-grow mt-2">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5 italic">
                         <span>⚔️</span> Match Events Log ({subEvents.length})
                       </h4>
-                      <div className="flex-1 min-h-[220px] max-h-[300px] overflow-y-auto p-2 bg-slate-950/50 rounded-xl border border-white/5 space-y-1.5 scrollbar-thin">
+                      <div className="flex-1 min-h-[220px] max-h-[300px] overflow-y-auto p-2.5 bg-[#050505] rounded-2xl border border-white/10 space-y-1.5 scrollbar-thin">
                         {subEvents.length === 0 ? (
-                          <div className="h-full flex items-center justify-center text-xs text-gray-500 font-mono">
+                          <div className="h-full flex items-center justify-center text-xs text-white/30 font-black uppercase tracking-wider italic">
                             No recorded events in this match.
                           </div>
                         ) : (
@@ -250,17 +250,17 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
                                   e.stopPropagation();
                                   handleEventClick(subEv);
                                 }}
-                                className={`flex items-center justify-between p-2 rounded-lg border transition-all text-xs cursor-pointer ${
+                                className={`flex items-center justify-between p-2.5 rounded-xl border transition-all text-xs font-bold cursor-pointer ${
                                   isSubSelected
-                                    ? 'bg-pink-500/10 border-pink-500/30 text-white font-medium shadow-sm'
-                                    : 'bg-slate-900/40 border-white/5 hover:border-white/10 text-gray-300 hover:text-white'
+                                    ? 'bg-brand/10 border-brand/40 text-white shadow-[0_0_10px_var(--color-brand-glow)]'
+                                    : 'bg-white/5 border-white/5 hover:border-white/10 text-white hover:text-white'
                                 }`}
                               >
                                 <div className="flex items-center gap-2 truncate pr-2">
                                   <span>{evIcon}</span>
                                   <span className="truncate">{subEv.title}</span>
                                 </div>
-                                <span className="text-[9px] font-mono text-gray-400 bg-slate-950 px-1.5 py-0.5 rounded border border-white/5">
+                                <span className="text-[10px] font-mono bg-[#0c0c0c] px-2 py-0.5 rounded border border-white/10 text-gray-300">
                                   {formatTimestamp(relativeTime)}
                                 </span>
                               </div>
@@ -283,9 +283,9 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
 
         {/* Searchable Events List (Right) */}
         <div className="flex-1 lg:w-7/12 flex flex-col">
-          <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-sm flex flex-col h-full">
+          <div className="bg-[#0c0c0c] border border-white/10 rounded-[32px] p-6 shadow-xl flex flex-col h-full">
             <div className="border-b border-white/5 pb-3 mb-4">
-              <h3 className="font-bold text-white text-base tracking-wide mb-3 flex items-center gap-2">
+              <h3 className="font-black text-white text-base tracking-widest uppercase mb-3 flex items-center gap-2 italic">
                 <span>📋</span> All VOD Events ({searchedEvents.length})
               </h3>
               
@@ -296,7 +296,7 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
                   placeholder="🔍 Search title, champ, song, drake..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full sm:w-72 bg-slate-955 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all font-sans"
+                  className="w-full sm:w-72 bg-[#050505] border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-sans"
                 />
                 
                 <div className="flex flex-wrap gap-1.5 select-none">
@@ -304,10 +304,10 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
                     <button
                       key={type}
                       onClick={() => setFilterType(type)}
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
+                      className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer italic skew-x-[-12deg] ${
                         filterType === type 
-                          ? 'bg-pink-500 border-pink-500 text-white shadow-lg shadow-pink-500/20' 
-                          : 'bg-slate-950 border-white/5 text-gray-400 hover:text-white hover:bg-slate-900'
+                          ? 'bg-brand border-brand text-slate-950 shadow-[0_0_12px_var(--color-brand-glow)]' 
+                          : 'bg-[#050505] border-white/5 text-gray-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       {type === 'all' && 'All'}
@@ -322,9 +322,9 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
             </div>
 
             {/* Scrollable Virtualized Event List */}
-            <div className="flex-1 min-h-[300px] max-h-[400px] overflow-hidden p-1 bg-slate-950/40 rounded-xl border border-white/5">
+            <div className="flex-1 min-h-[300px] max-h-[400px] overflow-hidden p-2.5 bg-[#050505] rounded-2xl border border-white/10">
               {searchedEvents.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-sm text-gray-500 font-mono">
+                <div className="h-full flex items-center justify-center text-sm text-white/30 font-black uppercase tracking-wider italic">
                   No events match your search query.
                 </div>
               ) : (
@@ -342,7 +342,6 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
                       event.type === 'BUILDING_KILL' ? '🏰' :
                       event.type === 'SONG' ? '🎵' : '🎮';
 
-                    // Include artist details inside Song titles for all VOD events
                     const displayTitle = event.type === VodEventType.SONG 
                       ? `${event.title} - ${(event as SongEvent).artist}` 
                       : event.title;
@@ -351,22 +350,22 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) =>
                       <div 
                         key={event.id}
                         onClick={() => handleEventClick(event)}
-                        className={`flex items-center justify-between p-2.5 rounded-xl border transition-all duration-150 cursor-pointer ${
+                        className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-150 cursor-pointer ${
                           isSelected 
-                            ? 'bg-pink-500/10 border-pink-500/40 text-white shadow-lg shadow-pink-500/5' 
-                            : 'bg-slate-900/30 border-white/5 hover:border-white/10 hover:bg-slate-900/60 text-gray-300 hover:text-white'
+                            ? 'bg-brand/10 border-brand/40 text-white shadow-[0_0_10px_var(--color-brand-glow)]' 
+                            : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/10 text-white'
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="text-sm select-none">{eventIcon}</span>
                           <div className="min-w-0">
-                            <div className="text-xs font-semibold truncate pr-2">{displayTitle}</div>
-                            <div className="text-[9px] text-gray-500 capitalize">
+                            <div className="text-xs font-bold truncate pr-2 text-white">{displayTitle}</div>
+                            <div className="text-[9px] text-gray-500 uppercase font-bold tracking-wider mt-0.5">
                               {event.type.replace(/_/g, ' ').toLowerCase()}
                             </div>
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono font-medium bg-slate-950 px-2 py-0.5 rounded border border-white/5 text-gray-400 whitespace-nowrap">
+                        <span className="text-[10px] font-mono bg-[#0c0c0c] px-2 py-0.5 rounded border border-white/10 text-gray-400 whitespace-nowrap">
                           {formatTimestamp(event.offsetSeconds)}
                         </span>
                       </div>
