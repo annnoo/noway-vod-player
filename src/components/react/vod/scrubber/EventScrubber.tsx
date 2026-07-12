@@ -41,10 +41,22 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
   const startViewStart = useRef(0);
   const startViewEnd = useRef(0);
 
+  // Touch Pinch-to-Zoom State Refs
+  const isPinching = useRef(false);
+  const startPinchDist = useRef(0);
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const windowSize = viewport.viewEnd - viewport.viewStart;
   const zoomLevelDisplay = vodDuration / Math.max(1, windowSize);
+
+  // Helper to dynamically calculate label width offset depending on breakpoint
+  const getLabelOffset = (): number => {
+    if (containerRef.current && containerRef.current.clientWidth < 768) {
+      return 0; // 0px offset on mobile
+    }
+    return 144; // 144px (w-36) offset on desktop
+  };
 
   // Subscribe to current player time and auto-scroll state
   useEffect(() => {
@@ -64,7 +76,7 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
 
   // Sync viewport center with playhead when player time moves and autoFollow is active
   useEffect(() => {
-    if (!autoFollow || isDragging.current) return;
+    if (!autoFollow || isDragging.current || isPinching.current) return;
 
     const currentWindowSize = viewport.viewEnd - viewport.viewStart;
     
@@ -96,8 +108,9 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
       e.preventDefault(); // Stop page scrolling
       
       const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left - 144; // 144px track label offset (w-36)
-      const activeWidth = rect.width - 144;
+      const offset = getLabelOffset();
+      const x = e.clientX - rect.left - offset;
+      const activeWidth = rect.width - offset;
 
       const hoverRatio = activeWidth > 0 ? Math.max(0, Math.min(1, x / activeWidth)) : 0.5;
       const zoomFactor = e.deltaY > 0 ? 1.25 : 1 / 1.25;
@@ -187,7 +200,8 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
     if (!isDragging.current || !containerRef.current) return;
 
     const deltaX = e.clientX - startX.current;
-    const activeWidth = containerRef.current.clientWidth - 144; // 144px track label offset
+    const offset = getLabelOffset();
+    const activeWidth = containerRef.current.clientWidth - offset;
     if (activeWidth <= 0) return;
 
     const currentWindowSize = startViewEnd.current - startViewStart.current;
@@ -212,6 +226,104 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
     isDragging.current = false;
   };
 
+  // Touch Gesture Panning & Zoom handlers
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('.cursor-pointer') && target !== containerRef.current) {
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      isDragging.current = true;
+      isPinching.current = false;
+      startX.current = e.touches[0].clientX;
+      startViewStart.current = viewport.viewStart;
+      startViewEnd.current = viewport.viewEnd;
+
+      if (autoFollow) {
+        autoScrollEnabledStore.set(false);
+      }
+    } else if (e.touches.length === 2) {
+      isPinching.current = true;
+      isDragging.current = false;
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      startPinchDist.current = dist;
+      startViewStart.current = viewport.viewStart;
+      startViewEnd.current = viewport.viewEnd;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+
+    if (e.touches.length === 1 && isDragging.current) {
+      const deltaX = e.touches[0].clientX - startX.current;
+      const offset = getLabelOffset();
+      const activeWidth = containerRef.current.clientWidth - offset;
+      if (activeWidth <= 0) return;
+
+      const currentWindowSize = startViewEnd.current - startViewStart.current;
+      const timeDelta = -(deltaX / activeWidth) * currentWindowSize;
+
+      let newStart = startViewStart.current + timeDelta;
+      let newEnd = startViewEnd.current + timeDelta;
+
+      if (newStart < 0) {
+        newStart = 0;
+        newEnd = currentWindowSize;
+      }
+      if (newEnd > vodDuration) {
+        newEnd = vodDuration;
+        newStart = Math.max(0, vodDuration - currentWindowSize);
+      }
+
+      setViewport({ viewStart: newStart, viewEnd: newEnd });
+    } else if (e.touches.length === 2 && isPinching.current) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (dist === 0) return;
+
+      const scaleFactor = startPinchDist.current / dist;
+      const currentWindowSize = startViewEnd.current - startViewStart.current;
+      let newWindowSize = currentWindowSize * scaleFactor;
+
+      newWindowSize = Math.max(60, Math.min(vodDuration, newWindowSize));
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const offset = getLabelOffset();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - offset;
+      const activeWidth = rect.width - offset;
+      const centerRatio = activeWidth > 0 ? Math.max(0, Math.min(1, midX / activeWidth)) : 0.5;
+
+      const centerTime = startViewStart.current + centerRatio * currentWindowSize;
+      let newStart = centerTime - centerRatio * newWindowSize;
+      let newEnd = centerTime + (1 - centerRatio) * newWindowSize;
+
+      if (newStart < 0) {
+        newStart = 0;
+        newEnd = newWindowSize;
+      }
+      if (newEnd > vodDuration) {
+        newEnd = vodDuration;
+        newStart = Math.max(0, vodDuration - newWindowSize);
+      }
+
+      setViewport({ viewStart: newStart, viewEnd: newEnd });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+    isPinching.current = false;
+  };
+
   // Seek clicking on track space
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging.current || !containerRef.current) return;
@@ -222,8 +334,9 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
     }
 
     const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - 144; // 144px offset
-    const activeWidth = rect.width - 144;
+    const offset = getLabelOffset();
+    const x = e.clientX - rect.left - offset;
+    const activeWidth = rect.width - offset;
 
     if (activeWidth > 0 && x >= 0) {
       const clickRatio = x / activeWidth;
@@ -234,6 +347,10 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
 
   const handleToggleAutoFollow = () => {
     autoScrollEnabledStore.set(!autoFollow);
+  };
+
+  const handleZoomToTimeframe = (start: number, end: number) => {
+    setViewport({ viewStart: start, viewEnd: end });
   };
 
   return (
@@ -257,12 +374,15 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={handleTimelineClick}
         className="relative w-full overflow-hidden bg-slate-950 border border-white/10 rounded-b-2xl shadow-2xl flex flex-col select-none cursor-grab active:cursor-grabbing"
       >
         {/* Dynamic Ruler at top with spacing for track labels */}
         <div className="flex w-full">
-          <div className="w-36 border-r border-white/10 bg-slate-950/90 z-15 flex items-center pl-3 h-8">
+          <div className="hidden md:flex w-36 border-r border-white/10 bg-slate-950/90 z-15 items-center pl-3 h-8">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time</span>
           </div>
           <div className="flex-1 relative">
@@ -273,7 +393,7 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
         {/* Tracks List Wrapper */}
         <div className="relative w-full flex flex-col">
           {/* Vertical Playhead Cursor */}
-          <div className="absolute top-0 bottom-0 left-36 right-0 pointer-events-none z-20 overflow-hidden">
+          <div className="absolute top-0 bottom-0 left-0 md:left-36 right-0 pointer-events-none z-20 overflow-hidden">
             <div className="relative w-full h-full">
               <Playhead currentTime={currentTime} viewport={viewport} />
             </div>
@@ -288,6 +408,7 @@ const EventScrubber: React.FC<EventScrubberProps> = ({
               viewport={viewport}
               activeEventId={activeEventId}
               onEventClick={onEventClick}
+              onZoomToTimeframe={handleZoomToTimeframe}
             />
           ))}
         </div>

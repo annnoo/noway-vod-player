@@ -46,19 +46,19 @@ const TimeRuler: React.FC<TimeRulerProps> = ({ viewport, vodDuration }) => {
   };
 
   return (
-    <div className="relative w-full h-10 border-b border-white/10 select-none bg-slate-950/60 rounded-t-xl overflow-hidden">
+    <div className="relative w-full h-8 border-b border-white/10 select-none bg-slate-950/60 rounded-t-xl overflow-hidden">
       {ticks.map((tick) => {
         const left = toPercent(tick, viewport);
         return (
           <div
             key={tick}
-            className="absolute top-0 bottom-0 border-l border-white/8 flex flex-col justify-between pt-2 pointer-events-none"
+            className="absolute top-0 bottom-0 border-l border-white/5 flex flex-col justify-between pt-1 pb-0.5 pointer-events-none"
             style={{ left: `${left}%` }}
           >
-            <span className="text-xs font-mono text-slate-200 font-bold -translate-x-1/2 select-none whitespace-nowrap">
+            <span className="text-[10px] md:text-xs font-mono font-bold text-slate-400 -translate-x-1/2 select-none whitespace-nowrap">
               {formatTimestamp(tick)}
             </span>
-            <div className="h-2.5 w-px bg-white/40 self-start" />
+            <div className="h-2 w-px bg-white/35 self-start" />
           </div>
         );
       })}
