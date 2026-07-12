@@ -1,4 +1,7 @@
 ---
+// Global stylesheet import
+import '../styles/global.css';
+
 export interface Props {
 	title: string;
 	description?: string;
@@ -18,32 +21,40 @@ const { title, description } = Astro.props;
 		{description && <meta name="description" content={description} />}
 		<script src="https://embed.twitch.tv/embed/v1.js"></script>
 	</head>
-	<body class="bg-[#0a0a0a] min-h-screen text-white font-sans antialiased relative">
-		<header class="fixed top-0 left-0 w-full p-4 flex justify-between items-center z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/10 shadow-lg transform-gpu">
-			<div class="w-full max-w-[98vw] mx-auto px-4 flex items-center justify-between">
-				<nav class="flex items-center justify-between w-full">
-					<a href="/" class="text-2xl font-black uppercase tracking-tighter text-white hover:scale-105 transition-transform duration-350 italic skew-x-[-12deg] flex items-center gap-1">
-						VOD <span class="text-brand drop-shadow-[0_0_12px_var(--color-brand-glow)]">PLAYER</span>
-					</a>
-					<div class="flex items-center space-x-6">
-						<a href="/" class="text-xs font-black uppercase tracking-widest text-white/50 hover:text-white transition-colors duration-200 italic skew-x-[-12deg]">Home</a>
-						<div class="w-8 h-8 bg-brand shadow-[0_0_12px_var(--color-brand-glow)] rounded-full flex items-center justify-center">
-							<span class="text-[#0a0a0a] text-sm font-black italic">V</span>
+	<body class="min-h-screen text-slate-100 font-sans antialiased relative">
+		
+		<!-- High-Contrast Esports Top Trim Line -->
+		<div class="h-[3px] w-full bg-gradient-to-r from-brand via-brand/80 to-yellow-500 fixed top-0 left-0 z-55"></div>
+
+		<header class="fixed top-[3px] left-0 w-full z-50 bg-slate-950/40 backdrop-blur-md border-b border-white/5 shadow-md">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="flex items-center justify-between h-16">
+					<nav class="flex items-center justify-between w-full">
+						{/* Logo matching the index hero mayhem styling */}
+						<a href="/" class="text-xl font-black uppercase tracking-tighter text-white hover:scale-105 transition-transform italic skew-x-[-12deg] flex items-center gap-1">
+							VODS <span class="text-brand drop-shadow-[0_0_12px_var(--color-brand-glow)]">//4U</span>
+						</a>
+						
+						{/* Navigation link matching mayhem styling */}
+						<div class="flex items-center space-x-6">
+							<a href="/" class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors italic skew-x-[-12deg]">
+								Home
+							</a>
 						</div>
-					</div>
-				</nav>
+					</nav>
+				</div>
 			</div>
 		</header>
 		
-		<div class="pt-20 md:pt-28 flex flex-col min-h-screen">
-			<main class="flex-1">
+		<div class="pt-20 flex flex-col min-h-screen">
+			<main class="flex-grow">
 				<slot />
 			</main>
 			
-			<footer class="pt-8 pb-24 md:pb-12 border-t border-white/5 text-center relative z-10 mt-auto bg-transparent">
-				<div class="w-full max-w-[98vw] mx-auto px-4 flex flex-col items-center gap-3">
-					<p class="text-center text-white/30 text-[10px] md:text-xs font-black uppercase tracking-[0.25em] italic">
-						© 2026 VOD Player • Built with Astro
+			<footer class="pt-8 pb-8 border-t border-white/5 text-center mt-auto bg-slate-950/20 backdrop-blur-sm">
+				<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<p class="font-display text-[9px] uppercase tracking-widest text-slate-600 italic">
+						© 2026 VOD • Built with Astro by Anno
 					</p>
 				</div>
 			</footer>
