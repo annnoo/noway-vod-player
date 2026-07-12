@@ -1,0 +1,392 @@
+---
+import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
+
+// Mock data for 16 World Teams with 5 players each = 80 players
+const worldTeams = [
+  {
+    name: "T1",
+    region: "LCK",
+    players: [
+      { name: "Faker", role: "Mid", status: "won", isFaker: true },
+      { name: "Gumayusi", role: "ADC", status: "won" },
+      { name: "Zeus", role: "Top", status: "encountered" },
+      { name: "Oner", role: "Jungle", status: "not_encountered" },
+      { name: "Keria", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "JDG",
+    region: "LPL",
+    players: [
+      { name: "Knight", role: "Top", status: "won" },
+      { name: "Yagao", role: "Jungle", status: "encountered" },
+      { name: "Zoom", role: "Mid", status: "not_encountered" },
+      { name: "Hoya", role: "ADC", status: "not_encountered" },
+      { name: "Missing", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "BLG",
+    region: "LPL",
+    players: [
+      { name: "Bin", role: "Top", status: "encountered" },
+      { name: "Xun", role: "Jungle", status: "not_encountered" },
+      { name: "Yagao", role: "Mid", status: "not_encountered" },
+      { name: "Elk", role: "ADC", status: "not_encountered" },
+      { name: "ON", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "GEN",
+    region: "LCK",
+    players: [
+      { name: "Doran", role: "Top", status: "won" },
+      { name: "Peanut", role: "Jungle", status: "encountered" },
+      { name: "Chovy", role: "Mid", status: "not_encountered" },
+      { name: "Peyz", role: "ADC", status: "not_encountered" },
+      { name: "Delight", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "TES",
+    region: "LPL",
+    players: [
+      { name: "369", role: "Top", status: "encountered" },
+      { name: "Tian", role: "Jungle", status: "not_encountered" },
+      { name: "knight", role: "Mid", status: "not_encountered" },
+      { name: "JackeyLove", role: "ADC", status: "not_encountered" },
+      { name: "Meiko", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "HLE",
+    region: "LCK",
+    players: [
+      { name: "Morgan", role: "Top", status: "won" },
+      { name: "Clozer", role: "Jungle", status: "encountered" },
+      { name: "Zeka", role: "Mid", status: "not_encountered" },
+      { name: "Viper", role: "ADC", status: "not_encountered" },
+      { name: "Life", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "WBG",
+    region: "LPL",
+    players: [
+      { name: "TheShy", role: "Top", status: "encountered" },
+      { name: "Weiwei", role: "Jungle", status: "not_encountered" },
+      { name: "Xiaohu", role: "Mid", status: "not_encountered" },
+      { name: "Light", role: "ADC", status: "not_encountered" },
+      { name: "Crisp", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "KT",
+    region: "LCK",
+    players: [
+      { name: "Kiin", role: "Top", status: "won" },
+      { name: "Cuzz", role: "Jungle", status: "encountered" },
+      { name: "Bdd", role: "Mid", status: "not_encountered" },
+      { name: "Aiming", role: "ADC", status: "not_encountered" },
+      { name: "Lehends", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "LNG",
+    region: "LPL",
+    players: [
+      { name: "Ale", role: "Top", status: "encountered" },
+      { name: "Tarzan", role: "Jungle", status: "not_encountered" },
+      { name: "Scout", role: "Mid", status: "not_encountered" },
+      { name: "GALA", role: "ADC", status: "not_encountered" },
+      { name: "Weiwei", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "DK",
+    region: "LCK",
+    players: [
+      { name: "Nuguri", role: "Top", status: "won" },
+      { name: "Canyon", role: "Jungle", status: "encountered" },
+      { name: "ShowMaker", role: "Mid", status: "not_encountered" },
+      { name: "Deft", role: "ADC", status: "not_encountered" },
+      { name: "BeryL", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "RNG",
+    region: "LPL",
+    players: [
+      { name: "Breath", role: "Top", status: "encountered" },
+      { name: "Wei", role: "Jungle", status: "not_encountered" },
+      { name: "Cryin", role: "Mid", status: "not_encountered" },
+      { name: "GALA", role: "ADC", status: "not_encountered" },
+      { name: "Ming", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "NS",
+    region: "PCS",
+    players: [
+      { name: "Rest", role: "Top", status: "won" },
+      { name: "Bay", role: "Jungle", status: "encountered" },
+      { name: "Shunn", role: "Mid", status: "not_encountered" },
+      { name: "Wako", role: "ADC", status: "not_encountered" },
+      { name: "Koala", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "MAD",
+    region: "LEC",
+    players: [
+      { name: "Armut", role: "Top", status: "encountered" },
+      { name: "Elyoya", role: "Jungle", status: "not_encountered" },
+      { name: "Humanoid", role: "Mid", status: "not_encountered" },
+      { name: "Carzzy", role: "ADC", status: "not_encountered" },
+      { name: "Kaiser", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "G2",
+    region: "LEC",
+    players: [
+      { name: "BrokenBlade", role: "Top", status: "won" },
+      { name: "Yike", role: "Jungle", status: "encountered" },
+      { name: "Caps", role: "Mid", status: "not_encountered" },
+      { name: "Flakked", role: "ADC", status: "not_encountered" },
+      { name: "Targamas", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "C9",
+    region: "LCS",
+    players: [
+      { name: "Fudge", role: "Top", status: "encountered" },
+      { name: "Blaber", role: "Jungle", status: "not_encountered" },
+      { name: "Jensen", role: "Mid", status: "not_encountered" },
+      { name: "Zven", role: "ADC", status: "not_encountered" },
+      { name: "Zeyzal", role: "Support", status: "not_encountered" }
+    ]
+  },
+  {
+    name: "TL",
+    region: "LCS",
+    players: [
+      { name: "Impact", role: "Top", status: "won" },
+      { name: "Spica", role: "Jungle", status: "encountered" },
+      { name: "Bjergsen", role: "Mid", status: "not_encountered" },
+      { name: "Doublelift", role: "ADC", status: "not_encountered" },
+      { name: "Biofrost", role: "Support", status: "not_encountered" }
+    ]
+  }
+];
+
+// Calculate prize counters
+const calculatePrizes = () => {
+  let voucherCount = 0;
+  let consoleCount = 0;
+
+  worldTeams.forEach(team => {
+    team.players.forEach(player => {
+      if (player.status === 'encountered') {
+        voucherCount += 50; // 50€ for playing against pro
+      } else if (player.status === 'won') {
+        voucherCount += 100; // 100€ for winning against pro (50 + 50)
+        if (player.isFaker) {
+          consoleCount += 1; // Bonus console for winning against Faker
+        }
+      }
+    });
+  });
+
+  return { voucherCount, consoleCount };
+};
+
+const { voucherCount, consoleCount } = calculatePrizes();
+---
+<Layout title="Noway vs the Worlds - Event Tracker" description="Track Noway's progress against 80 professional League of Legends players from 16 World Championship teams">
+    <main class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <!-- Hero Section -->
+        <section class="relative overflow-hidden">
+            <div class="absolute inset-0 bg-black/20"></div>
+            <div class="relative container mx-auto px-4 py-16 text-center">
+                <div class="mb-8">
+                    <h1 class="text-6xl font-bold bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 bg-clip-text text-transparent mb-4">
+                        NOWAY VS THE WORLDS
+                    </h1>
+                    <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                        Noway takes on 80 professional League of Legends players from 16 World Championship teams.
+                        Win vouchers and consoles in this epic challenge!
+                    </p>
+                </div>
+
+                <!-- Prize Counters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
+                    <div class="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-sm border border-yellow-500/30 rounded-xl p-6">
+                        <div class="text-4xl font-bold text-yellow-400 mb-2">€{voucherCount}</div>
+                        <div class="text-lg text-yellow-200">Vouchers Given Out</div>
+                        <div class="text-sm text-yellow-300/70 mt-1">50€ per game, 100€ per win</div>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-sm border border-purple-500/30 rounded-xl p-6">
+                        <div class="text-4xl font-bold text-purple-400 mb-2">{consoleCount}</div>
+                        <div class="text-lg text-purple-200">Consoles Won</div>
+                        <div class="text-sm text-purple-300/70 mt-1">PS5/XBOX/Switch vs Faker</div>
+                    </div>
+                </div>
+
+                <!-- Rules Summary -->
+                <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 max-w-4xl mx-auto">
+                    <h3 class="text-2xl font-bold text-white mb-4">🎯 How It Works</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">🎮</div>
+                            <div class="text-sm text-gray-300">Play against a pro = 50€ voucher</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">🏆</div>
+                            <div class="text-sm text-gray-300">Win against a pro = +50€ voucher</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">⭐</div>
+                            <div class="text-sm text-gray-300">Win vs Faker = Console prize</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Teams Grid -->
+        <section class="container mx-auto px-4 py-16">
+            <h2 class="text-4xl font-bold text-center text-white mb-12">16 World Championship Teams</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {worldTeams.map((team) => (
+                    <div class="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl overflow-hidden hover:bg-gray-800/60 transition-all duration-300">
+                        <!-- Team Header -->
+                        <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">{team.name}</h3>
+                                    <span class="text-blue-200 text-sm">{team.region}</span>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-white">
+                                        {team.players.filter(p => p.status === 'won').length}/
+                                        {team.players.filter(p => p.status !== 'not_encountered').length}/
+                                        {team.players.length}
+                                    </div>
+                                    <div class="text-xs text-blue-200">Won/Played/Total</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Players -->
+                        <div class="p-4 space-y-3">
+                            {team.players.map((player) => (
+                                <div class={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                                    player.status === 'won'
+                                        ? 'bg-green-900/30 border-green-500/50 text-green-200'
+                                        : player.status === 'encountered'
+                                        ? 'bg-yellow-900/30 border-yellow-500/50 text-yellow-200'
+                                        : 'bg-gray-900/30 border-gray-600/50 text-gray-400'
+                                }`}>
+                                    <div class="flex items-center gap-3">
+                                        <div class={`w-3 h-3 rounded-full ${
+                                            player.status === 'won'
+                                                ? 'bg-green-400'
+                                                : player.status === 'encountered'
+                                                ? 'bg-yellow-400'
+                                                : 'bg-gray-500'
+                                        }`}></div>
+                                        <div>
+                                            <div class="font-semibold">{player.name}</div>
+                                            <div class="text-xs opacity-75">{player.role}</div>
+                                        </div>
+                                        {player.isFaker && (
+                                            <div class="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded-full border border-red-500/30">
+                                                👑 GOAT
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm font-medium">
+                                            {player.status === 'won' && '🏆 Won'}
+                                            {player.status === 'encountered' && '⚔️ Played'}
+                                            {player.status === 'not_encountered' && '⏳ Pending'}
+                                        </div>
+                                        {player.status !== 'not_encountered' && (
+                                            <div class="text-xs opacity-75">
+                                                {player.status === 'won' ? '+100€' : '+50€'}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section class="bg-gray-900/50 py-16">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-bold text-center text-white mb-12">📊 Event Statistics</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-blue-400 mb-2">
+                            {worldTeams.flatMap(t => t.players).filter(p => p.status !== 'not_encountered').length}
+                        </div>
+                        <div class="text-xl text-blue-200">Games Played</div>
+                        <div class="text-sm text-blue-300/70">out of 80 total</div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-green-400 mb-2">
+                            {worldTeams.flatMap(t => t.players).filter(p => p.status === 'won').length}
+                        </div>
+                        <div class="text-xl text-green-200">Victories</div>
+                        <div class="text-sm text-green-300/70">wins against pros</div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="text-5xl font-bold text-purple-400 mb-2">
+                            {Math.round((worldTeams.flatMap(t => t.players).filter(p => p.status === 'won').length / worldTeams.flatMap(t => t.players).filter(p => p.status !== 'not_encountered').length) * 100) || 0}%
+                        </div>
+                        <div class="text-xl text-purple-200">Win Rate</div>
+                        <div class="text-sm text-purple-300/70">against played opponents</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="max-w-4xl mx-auto mt-12">
+                    <div class="bg-gray-800 rounded-full h-4 overflow-hidden">
+                        <div
+                            class="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-1000"
+                            style={`width: ${(worldTeams.flatMap(t => t.players).filter(p => p.status !== 'not_encountered').length / 80) * 100}%`}
+                        ></div>
+                    </div>
+                    <div class="text-center mt-4 text-gray-400">
+                        Event Progress: {worldTeams.flatMap(t => t.players).filter(p => p.status !== 'not_encountered').length} / 80 players encountered
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 border-t border-gray-800 py-8">
+            <div class="container mx-auto px-4 text-center">
+                <p class="text-gray-400">
+                    🎮 Noway vs the Worlds - Bringing the ultimate challenge to League of Legends
+                </p>
+                <div class="mt-4 flex justify-center gap-6 text-sm text-gray-500">
+                    <span>📺 Live on Twitch</span>
+                    <span>💰 Vouchers: Amazon/Lieferando/Steam</span>
+                    <span>🏆 Consoles: PS5/XBOX/Switch</span>
+                </div>
+            </div>
+        </footer>
+    </main>
+</Layout>
