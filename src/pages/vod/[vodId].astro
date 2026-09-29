@@ -1,5 +1,6 @@
 ---
 import type { ExtendedVodResponse } from '../../lib/types';
+import { fetchStreamPlaylist } from '../../lib/playlist';
 import Layout from '../../layouts/Layout.astro';
 import TwitchChannelEmbed from '../../components/react/vod/TwitchChannelEmbed';
 import EventTimeline from '../../components/react/vod/EventTimeline';
@@ -10,10 +11,10 @@ const offset = Astro.url.searchParams.get('offset') || '0';
 
 let vodData: ExtendedVodResponse | null = null;
 let error: string | null = null;
-	const playlist = await fetch(`http://website-backend.noway.gg/playlist/stream/${vodId}`).then(res => res.json()).catch(err => {
-		console.error('Error fetching playlist:', err);
-		return null;
-	});
+const playlist = await fetchStreamPlaylist(vodId!).catch(err => {
+	console.error('Error fetching playlist:', err);
+	return null;
+});
 const playlistForEmbed = playlist?.spotifyUrl?.split('https://open.spotify.com/')[1]
 try {
 	const response = await fetch(`http://website-backend.noway.gg/vod/${vodId}/events`);
