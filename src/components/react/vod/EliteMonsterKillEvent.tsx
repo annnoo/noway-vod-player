@@ -1,6 +1,7 @@
 import React from 'react';
 import type { EliteMonsterKillVodEvent } from '../../../lib/types';
 import { twitchEventBus } from '../../../lib/store';
+import { cn } from '../../../lib/utils';
 
 interface EliteMonsterKillEventComponentProps {
   event: EliteMonsterKillVodEvent;

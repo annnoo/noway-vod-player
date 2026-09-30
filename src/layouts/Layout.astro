@@ -11,7 +11,7 @@ const { title, description } = Astro.props;
 ---
 
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="de" class="dark">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
@@ -19,26 +19,26 @@ const { title, description } = Astro.props;
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>{title}</title>
 		{description && <meta name="description" content={description} />}
-		<script src="https://embed.twitch.tv/embed/v1.js"></script>
 	</head>
 	<body class="min-h-screen text-slate-100 font-sans antialiased relative">
 		
 		<!-- High-Contrast Esports Top Trim Line -->
-		<div class="h-[3px] w-full bg-gradient-to-r from-brand via-brand/80 to-yellow-500 fixed top-0 left-0 z-55"></div>
+		<div class="h-[2px] w-full bg-gradient-to-r from-[#A2E0C9] via-[#00F5B8] to-[#9146FF] fixed top-0 left-0 z-55"></div>
 
-		<header class="fixed top-[3px] left-0 w-full z-50 bg-slate-950/40 backdrop-blur-md border-b border-white/5 shadow-md">
-			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+		<header class="fixed top-[2px] left-0 w-full z-50 bg-[#050a08]/90 backdrop-blur-xl border-b border-[#172b22]">
+			<div class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-10">
 				<div class="flex items-center justify-between h-16">
 					<nav class="flex items-center justify-between w-full">
 						{/* Logo matching the index hero mayhem styling */}
-						<a href="/" class="text-xl font-black uppercase tracking-tighter text-white hover:scale-105 transition-transform italic skew-x-[-12deg] flex items-center gap-1">
-							VODS <span class="text-brand drop-shadow-[0_0_12px_var(--color-brand-glow)]">//4U</span>
+						<a href="/vod" class="text-xl font-black tracking-tighter text-white hover:text-[#A2E0C9] transition-colors flex items-center gap-1" aria-label="Noway4u VOD-Archiv">
+							NOWAY<span class="text-[#A2E0C9]">/VODS</span><span class="w-1.5 h-1.5 rounded-full bg-[#00F5B8] ml-1"></span>
 						</a>
 						
 						{/* Navigation link matching mayhem styling */}
-						<div class="flex items-center space-x-6">
-							<a href="/" class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors italic skew-x-[-12deg]">
-								Home
+						<div class="flex items-center gap-4 sm:gap-8">
+							<a href="/vod" class="text-xs font-bold uppercase tracking-widest text-[#A2E0C9] hover:text-white transition-colors">VODs</a>
+							<a href="/" class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors">
+								Startseite
 							</a>
 						</div>
 					</nav>
@@ -51,10 +51,10 @@ const { title, description } = Astro.props;
 				<slot />
 			</main>
 			
-			<footer class="pt-8 pb-8 border-t border-white/5 text-center mt-auto bg-slate-950/20 backdrop-blur-sm">
+			<footer class="pt-8 pb-8 border-t border-[#172b22] text-center mt-auto bg-[#050a08]">
 				<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<p class="font-display text-[9px] uppercase tracking-widest text-slate-600 italic">
-						© 2026 VOD • Built with Astro by Anno
+					<p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+						© 2026 NOWAY4U · STREAM-ARCHIV
 					</p>
 				</div>
 			</footer>

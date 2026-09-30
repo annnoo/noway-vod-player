@@ -1,435 +1,209 @@
-import React, { useEffect, useState, useRef } from 'react';
-import type { VodEvent, GameEvent, SongEvent } from '../../../lib/types';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Activity, ArrowUpRight, Crosshair, Flame, ListFilter, Music2, Play, Search, Swords, Target, Trophy, X } from 'lucide-react';
+import type { GameEvent, SongEvent, VodEvent } from '../../../lib/types';
 import { VodEventType } from '../../../lib/types';
-import { currentTimeStore, autoScrollEnabledStore, twitchEventBus } from '../../../lib/store';
-import GameEventComponent from './GameEvent';
-import SongEventComponent from './SongEvent';
-import ChampionKillEventComponent from './ChampionKillEvent';
-import ChampionDeathEventComponent from './ChampionDeathEvent';
-import ChampionAssistEventComponent from './ChampionAssistEvent';
-import ChampionSpecialKillEventComponent from './ChampionSpecialKillEvent';
-import EliteMonsterKillEventComponent from './EliteMonsterKillEvent';
-import BuildingKillEventComponent from './BuildingKillEvent';
-import GameEndEventComponent from './GameEndEvent';
-import EventScrubber from './scrubber/EventScrubber';
-import type { ViewportState } from './scrubber/types';
-import { VList } from "virtua";
+import { currentTimeStore, twitchEventBus } from '../../../lib/store';
+import { VList } from 'virtua';
+import ChampionMiniIcon from './ChampionMiniIcon';
+import SelectedMatchCard from './SelectedMatchCard';
 
-interface EventTimelineProps {
-  events: VodEvent[];
-  vodDuration: number;
-}
+type Filter = 'all' | 'combat' | 'objectives' | 'music';
 
-const EventTimeline: React.FC<EventTimelineProps> = ({ events, vodDuration }) => {
-  const [currentPlayheadTime, setCurrentPlayheadTime] = useState<number>(0);
+const formatTime = (value: number) => {
+  const seconds = Math.max(0, Math.floor(value));
+  return `${Math.floor(seconds / 3600).toString().padStart(2, '0')}:${Math.floor(seconds % 3600 / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+};
+
+const eventLabel = (event: VodEvent) => {
+  switch (event.type) {
+    case VodEventType.GAME: return 'Matchstart';
+    case VodEventType.GAME_END: return 'Matchende';
+    case VodEventType.SONG: return 'Musik';
+    case VodEventType.CHAMPION_KILL: return 'Kill';
+    case VodEventType.CHAMPION_SPECIAL_KILL: return 'Highlight';
+    case VodEventType.CHAMPION_DEATH: return 'Tod';
+    case VodEventType.CHAMPION_ASSIST: return 'Assist';
+    case VodEventType.ELITE_MONSTER_KILL: return 'Monster';
+    case VodEventType.BUILDING_KILL: return 'Gebäude';
+    default: return 'Ereignis';
+  }
+};
+
+const eventIcon = (event: VodEvent) => {
+  if (event.type === VodEventType.SONG) return Music2;
+  if (event.type === VodEventType.GAME || event.type === VodEventType.GAME_END) return Trophy;
+  if (event.type === VodEventType.ELITE_MONSTER_KILL || event.type === VodEventType.BUILDING_KILL) return Target;
+  if (event.type === VodEventType.CHAMPION_DEATH) return Crosshair;
+  if (event.type === VodEventType.CHAMPION_SPECIAL_KILL) return Flame;
+  return Swords;
+};
+
+const EventTimeline: React.FC<{ events: VodEvent[]; vodDuration: number; vodId: string }> = ({ events, vodDuration, vodId }) => {
+  const duration = Math.max(1, vodDuration);
+  const [currentTime, setCurrentTime] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<VodEvent | null>(null);
-  const [filterType, setFilterType] = useState<'all' | 'kills' | 'objectives' | 'songs' | 'game'>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const searchableListRef = useRef<any>(null);
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
+  const markerRailRef = useRef<HTMLDivElement>(null);
+  const [markerRailWidth, setMarkerRailWidth] = useState(600);
 
-  // Controlled Scrubber Viewport state (Lifting state up)
-  const [viewport, setViewport] = useState<ViewportState>({
-    viewStart: 0,
-    viewEnd: vodDuration,
-  });
-
-  // Sort events chronologically
-  const sortedEvents = [...events].sort((a, b) => a.offsetSeconds - b.offsetSeconds);
-
-  // Find the most recent event before current time
-  const findLatestEvent = (currentTime: number): VodEvent | null => {
-    const eventsBeforeCurrentTime = sortedEvents.filter(event => event.offsetSeconds <= currentTime + 1.5);
-    return eventsBeforeCurrentTime.length > 0 ? eventsBeforeCurrentTime[eventsBeforeCurrentTime.length - 1] : null;
-  };
-
-  const activeEvent = selectedEvent || findLatestEvent(currentPlayheadTime) || sortedEvents[0];
-
-  const seekToTime = (seconds: number) => {
-    twitchEventBus.emit(seconds);
-  };
-
-  const handleEventClick = (event: VodEvent) => {
-    seekToTime(event.offsetSeconds);
-    setSelectedEvent(event);
-
-    // Zoom into game timeframe when clicked
-    if (event.type === VodEventType.GAME) {
-      const game = event as GameEvent;
-      setViewport({
-        viewStart: game.offsetSeconds,
-        viewEnd: game.offsetSeconds + game.duration,
-      });
-    }
-  };
-
-  // Subscribe to updates from twitch playhead
+  useEffect(() => currentTimeStore.subscribe(setCurrentTime), []);
   useEffect(() => {
-    const unsubscribeCurrentTime = currentTimeStore.subscribe((currentTime) => {
-      setCurrentPlayheadTime(currentTime);
+    const rail = markerRailRef.current;
+    if (!rail) return;
+    const observer = new ResizeObserver(entries => setMarkerRailWidth(entries[0].contentRect.width));
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, [selectedGame]);
+
+  const sorted = useMemo(() => [...events].sort((a, b) => a.offsetSeconds - b.offsetSeconds), [events]);
+  const games = useMemo(() => sorted.filter((event): event is GameEvent => event.type === VodEventType.GAME), [sorted]);
+  const selectedMatch = games.find(game => game.id === selectedGame);
+  const activeMatch = games.find(game => currentTime >= game.offsetSeconds && currentTime < game.offsetSeconds + game.duration);
+  const gameForEvent = (event: VodEvent): GameEvent | undefined => {
+    if (event.type === VodEventType.SONG) return undefined;
+    if (event.type === VodEventType.GAME) return event;
+    return games.find(game => game.gameId === event.gameId) ?? games.find(game => event.offsetSeconds >= game.offsetSeconds && event.offsetSeconds <= game.offsetSeconds + game.duration);
+  };
+  const championForEvent = (event: VodEvent) => {
+    if (event.type === VodEventType.SONG) return undefined;
+    if ('championId' in event && event.championId > 0) return { id: event.championId, name: event.championName };
+    const game = gameForEvent(event);
+    return game && { id: game.championId, name: game.championName };
+  };
+  const wins = games.filter(game => game.won).length;
+
+  // Fixed-size buckets describe activity without making hundreds of overlapping markers.
+  const activity = useMemo(() => {
+    const buckets = Array.from({ length: 100 }, () => 0);
+    sorted.filter(event => event.type !== VodEventType.GAME && event.type !== VodEventType.SONG).forEach(event => {
+      const index = Math.min(99, Math.max(0, Math.floor(event.offsetSeconds / duration * 100)));
+      buckets[index] += 1;
     });
+    return buckets;
+  }, [sorted, duration]);
+  const maxActivity = Math.max(1, ...activity);
 
-    return () => {
-      unsubscribeCurrentTime();
-    };
-  }, []);
+  const matchEvents = useMemo(() => selectedMatch ? sorted.filter(event =>
+    event.type !== VodEventType.GAME && event.type !== VodEventType.SONG &&
+    event.offsetSeconds >= selectedMatch.offsetSeconds &&
+    event.offsetSeconds <= selectedMatch.offsetSeconds + selectedMatch.duration
+  ) : [], [sorted, selectedMatch]);
+  const matchSongs = useMemo(() => selectedMatch ? sorted.filter((event): event is SongEvent =>
+    event.type === VodEventType.SONG && event.offsetSeconds < selectedMatch.offsetSeconds + selectedMatch.duration &&
+    event.offsetSeconds + (event.duration || 180) > selectedMatch.offsetSeconds
+  ) : [], [sorted, selectedMatch]);
+  const markerGroups = useMemo(() => {
+    if (!selectedMatch) return [];
+    const groupCount = Math.max(1, Math.floor(markerRailWidth / 44));
+    const groups = new Map<number, VodEvent[]>();
+    matchEvents.forEach(event => {
+      const index = Math.min(groupCount - 1, Math.max(0, Math.floor((event.offsetSeconds - selectedMatch.offsetSeconds) / Math.max(1, selectedMatch.duration) * groupCount)));
+      groups.set(index, [...(groups.get(index) || []), event]);
+    });
+    return [...groups.entries()].map(([index, items]) => ({ index, items, percent: (index + .5) / groupCount * 100 }));
+  }, [matchEvents, selectedMatch, markerRailWidth]);
 
-  // Time formatter helper
-  const formatTimestamp = (offsetSeconds: number): string => {
-    const hours = Math.floor(offsetSeconds / 3600);
-    const minutes = Math.floor((offsetSeconds % 3600) / 60);
-    const seconds = Math.floor(offsetSeconds % 60);
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  const visibleEvents = useMemo(() => sorted.filter(event => {
+    if (selectedMatch && (event.offsetSeconds < selectedMatch.offsetSeconds || event.offsetSeconds > selectedMatch.offsetSeconds + selectedMatch.duration)) return false;
+    if (filter === 'combat' && ![VodEventType.CHAMPION_KILL, VodEventType.CHAMPION_SPECIAL_KILL, VodEventType.CHAMPION_DEATH, VodEventType.CHAMPION_ASSIST].includes(event.type)) return false;
+    if (filter === 'objectives' && ![VodEventType.ELITE_MONSTER_KILL, VodEventType.BUILDING_KILL, VodEventType.GAME_END].includes(event.type)) return false;
+    if (filter === 'music' && event.type !== VodEventType.SONG) return false;
+    const text = [event.title, event.description, 'championName' in event ? event.championName : '', 'artist' in event ? event.artist : '', eventLabel(event)].join(' ').toLocaleLowerCase('de');
+    return text.includes(query.trim().toLocaleLowerCase('de'));
+  }), [sorted, selectedMatch, filter, query]);
+
+  const seek = (time: number) => {
+    const next = Math.max(0, Math.min(duration, Math.floor(time)));
+    setCurrentTime(next);
+    twitchEventBus.emit(next);
   };
 
-  // 4. Real-time song matching for the Spotify Sync Bar
-  const getActiveSong = (): SongEvent | null => {
-    const songEvents = sortedEvents.filter(e => e.type === VodEventType.SONG) as SongEvent[];
-    
-    for (let i = 0; i < songEvents.length; i++) {
-      const song = songEvents[i];
-      let duration = song.duration;
-      if (!duration) {
-        const nextSong = songEvents[i + 1];
-        if (nextSong) {
-          duration = Math.min(nextSong.offsetSeconds - song.offsetSeconds, 1200);
-        } else {
-          duration = 1200; // default cap 20 min
-        }
-      }
-      
-      const songEnd = song.offsetSeconds + duration;
-      if (currentPlayheadTime >= song.offsetSeconds && currentPlayheadTime < songEnd) {
-        return song;
-      }
-    }
-    return null;
+  const chooseEvent = (event: VodEvent) => {
+    setSelectedEvent(event);
+    if (event.type === VodEventType.GAME) setSelectedGame(event.id);
+    seek(event.offsetSeconds);
   };
 
-  const activeSong = getActiveSong();
-
-  // Full field-based search matching logic
-  const matchesSearch = (event: VodEvent, query: string): boolean => {
-    const q = query.toLowerCase().trim();
-    if (!q) return true;
-
-    const fields: string[] = [
-      event.title || '',
-      event.description || '',
-      event.type || '',
-    ];
-
-    // Add type-specific details for search completeness
-    if ('championName' in event && event.championName) {
-      fields.push(event.championName);
-    }
-    if ('victimChampionName' in event && event.victimChampionName) {
-      fields.push(event.victimChampionName);
-    }
-    if ('killerChampionName' in event && event.killerChampionName) {
-      fields.push(event.killerChampionName);
-    }
-    if ('artist' in event && event.artist) {
-      fields.push(event.artist);
-    }
-    if ('monsterName' in event && event.monsterName) {
-      fields.push(event.monsterName);
-    }
-    if ('killType' in event && event.killType) {
-      fields.push(event.killType);
-    }
-    if ('laneType' in event && event.laneType) {
-      fields.push(event.laneType);
-    }
-    if ('buildingType' in event && event.buildingType) {
-      fields.push(event.buildingType);
-    }
-
-    return fields.some(f => f.toLowerCase().includes(q));
-  };
-
-  // Filtering Logic
-  const filteredEvents = sortedEvents.filter(event => {
-    if (filterType === 'all') return true;
-    if (filterType === 'kills') {
-      return [VodEventType.CHAMPION_KILL, VodEventType.CHAMPION_DEATH, VodEventType.CHAMPION_SPECIAL_KILL].includes(event.type);
-    }
-    if (filterType === 'objectives') {
-      return [VodEventType.ELITE_MONSTER_KILL, VodEventType.BUILDING_KILL].includes(event.type);
-    }
-    if (filterType === 'songs') {
-      return event.type === VodEventType.SONG;
-    }
-    if (filterType === 'game') {
-      return [VodEventType.GAME, VodEventType.GAME_END].includes(event.type);
-    }
-    return true;
-  });
-
-  const searchedEvents = filteredEvents.filter(event => matchesSearch(event, searchTerm));
-
-  const renderEventComponent = (event: VodEvent | null) => {
-    if (!event) return <div className="text-gray-500 text-center py-8">No event active</div>;
-    
-    switch (event.type) {
-      case VodEventType.GAME:
-        return <GameEventComponent event={event} />;
-      case VodEventType.SONG:
-        return <SongEventComponent event={event} />;
-      case VodEventType.CHAMPION_KILL:
-        return <ChampionKillEventComponent event={event} />;
-      case VodEventType.CHAMPION_DEATH:
-        return <ChampionDeathEventComponent event={event} />;
-      case VodEventType.CHAMPION_ASSIST:
-        return <ChampionAssistEventComponent event={event} />;
-      case VodEventType.CHAMPION_SPECIAL_KILL:
-        return <ChampionSpecialKillEventComponent event={event} />;
-      case VodEventType.ELITE_MONSTER_KILL:
-        return <EliteMonsterKillEventComponent event={event} />;
-      case VodEventType.BUILDING_KILL:
-        return <BuildingKillEventComponent event={event} />;
-      case VodEventType.GAME_END:
-        return <GameEndEventComponent event={event} />;
-      default:
-        return (
-          <div className="p-3 bg-slate-900/60 rounded-xl border border-white/5">
-            <h3 className="font-semibold text-gray-300 truncate">{event.title}</h3>
-            {event.description && <p className="text-xs text-gray-400 mt-1">{event.description}</p>}
-          </div>
-        );
-    }
-  };
+  const selected = selectedEvent && Math.abs(selectedEvent.offsetSeconds - currentTime) < 3 ? selectedEvent : [...sorted].reverse().find(event => event.offsetSeconds <= currentTime) || null;
+  const SelectedIcon = selected ? eventIcon(selected) : Activity;
+  const selectedChampion = selected && championForEvent(selected);
 
   return (
-    <div className="w-full flex flex-col gap-6 font-sans animate-fade-in">
-      {/* 1. Premiere-Style Scrubber Section */}
-      <EventScrubber
-        events={events}
-        vodDuration={vodDuration}
-        viewport={viewport}
-        setViewport={setViewport}
-        activeEventId={activeEvent?.id}
-        onEventClick={handleEventClick}
-      />
-
-      {/* 4. Floating Spotify Sync Bar (Now Playing in VOD) */}
-      {activeSong && (
-        <div className="bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-emerald-950/5 animate-pulse-slow">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-xl animate-bounce">🎵</span>
-            <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">Now Playing in VOD</div>
-              <div className="text-xs md:text-sm font-black text-white truncate pr-4">
-                {activeSong.title} <span className="text-gray-400 font-medium">by {activeSong.artist}</span>
-              </div>
-            </div>
-          </div>
-          {activeSong.spotifyUrl && (
-            <a 
-              href={activeSong.spotifyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] md:text-xs px-3.5 py-2 rounded-xl font-bold transition-all shadow-md shadow-emerald-600/20 whitespace-nowrap cursor-pointer hover:scale-105"
-            >
-              <span>🎧</span> Listen
-            </a>
-          )}
+    <section className="viewer-timeline" aria-label="Interaktive VOD-Timeline">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow"><Activity size={14} /> DEIN STREAM, AUF EINEN BLICK</span>
+          <h2>Die Timeline<span className="mint-dot">.</span></h2>
         </div>
-      )}
-
-      {/* 2. Detail & Search Dashboard (Inline Side-by-Side) */}
-      <div className="flex flex-col lg:flex-row gap-6 w-full items-stretch">
-        
-        {/* Active Event Card details (Left) */}
-        <div className="flex-1 lg:w-5/12 flex flex-col animate-fade-in">
-          <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-sm flex flex-col h-full justify-between">
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
-                <span className="text-sm font-semibold tracking-wide text-pink-400 uppercase">
-                  📌 Active Event
-                </span>
-                {activeEvent && (
-                  <button 
-                    onClick={() => seekToTime(activeEvent.offsetSeconds)}
-                    className="text-xs font-mono font-medium text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/20 px-3 py-1 rounded-lg border border-pink-500/20 transition-all cursor-pointer"
-                  >
-                    ⏱️ Play from {formatTimestamp(activeEvent.offsetSeconds)}
-                  </button>
-                )}
-              </div>
-              
-              <div className="flex-grow flex flex-col gap-4">
-                {renderEventComponent(activeEvent)}
-                
-                {/* Recap sub-events timeframe feed if activeEvent is a GAME */}
-                {activeEvent?.type === VodEventType.GAME && (() => {
-                  const game = activeEvent as GameEvent;
-                  const subEvents = sortedEvents.filter(e => 
-                    e.offsetSeconds >= game.offsetSeconds && 
-                    e.offsetSeconds <= game.offsetSeconds + game.duration &&
-                    e.id !== game.id
-                  );
-                  
-                  return (
-                    <div className="flex flex-col flex-grow mt-2">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <span>⚔️</span> Match Events Log ({subEvents.length})
-                      </h4>
-                      <div className="flex-1 min-h-[220px] max-h-[300px] overflow-y-auto p-2 bg-slate-950/50 rounded-xl border border-white/5 space-y-1.5 scrollbar-thin">
-                        {subEvents.length === 0 ? (
-                          <div className="h-full flex items-center justify-center text-xs text-gray-500 font-mono">
-                            No recorded events in this match.
-                          </div>
-                        ) : (
-                          subEvents.map(subEv => {
-                            const isSubSelected = selectedEvent?.id === subEv.id;
-                            const relativeTime = subEv.offsetSeconds - game.offsetSeconds;
-                            const evIcon = 
-                              subEv.type === 'CHAMPION_KILL' || subEv.type === 'CHAMPION_SPECIAL_KILL' ? '⚔️' :
-                              subEv.type === 'CHAMPION_DEATH' ? '💀' :
-                              subEv.type === 'ELITE_MONSTER_KILL' ? '🐉' :
-                              subEv.type === 'BUILDING_KILL' ? '🏰' :
-                              subEv.type === 'SONG' ? '🎵' : '🏁';
-                              
-                            return (
-                              <div
-                                key={subEv.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEventClick(subEv);
-                                }}
-                                className={`flex items-center justify-between p-2 rounded-lg border transition-all text-xs cursor-pointer ${
-                                  isSubSelected
-                                    ? 'bg-pink-500/10 border-pink-500/30 text-white font-medium shadow-sm'
-                                    : 'bg-slate-900/40 border-white/5 hover:border-white/10 text-gray-300 hover:text-white'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 truncate pr-2">
-                                  <span>{evIcon}</span>
-                                  <span className="truncate">{subEv.title}</span>
-                                </div>
-                                <span className="text-[9px] font-mono text-gray-400 bg-slate-950 px-1.5 py-0.5 rounded border border-white/5">
-                                  {formatTimestamp(relativeTime)}
-                                </span>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-            {activeEvent && (
-              <div className="text-[10px] text-gray-500 font-mono mt-4 text-right">
-                Offset: {activeEvent.offsetSeconds}s
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Searchable Events List (Right) */}
-        <div className="flex-1 lg:w-7/12 flex flex-col animate-fade-in">
-          <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 md:p-6 shadow-2xl backdrop-blur-sm flex flex-col h-full">
-            <div className="border-b border-white/5 pb-3 mb-4">
-              <h3 className="font-bold text-white text-base tracking-wide mb-3 flex items-center gap-2">
-                <span>📋</span> All VOD Events ({searchedEvents.length})
-              </h3>
-              
-              {/* Search Bar + Filters */}
-              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <input
-                  type="text"
-                  placeholder="🔍 Search title, champ, song, drake..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full sm:w-72 bg-slate-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all font-sans"
-                />
-                
-                <div className="flex flex-wrap gap-1.5 select-none">
-                  {(['all', 'kills', 'objectives', 'songs', 'game'] as const).map(type => (
-                    <button
-                      key={type}
-                      onClick={() => setFilterType(type)}
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
-                        filterType === type 
-                          ? 'bg-pink-500 border-pink-500 text-white shadow-lg shadow-pink-500/20' 
-                          : 'bg-slate-950 border-white/5 text-gray-400 hover:text-white hover:bg-slate-900'
-                      }`}
-                    >
-                      {type === 'all' && 'All'}
-                      {type === 'kills' && '⚔️ Kills'}
-                      {type === 'objectives' && '🐉 Obj'}
-                      {type === 'songs' && '🎵 Songs'}
-                      {type === 'game' && '🎮 Match'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Scrollable Virtualized Event List */}
-            <div className="flex-1 min-h-[300px] max-h-[400px] overflow-hidden p-1 bg-slate-950/40 rounded-xl border border-white/5">
-              {searchedEvents.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-sm text-gray-500 font-mono">
-                  No events match your search query.
-                </div>
-              ) : (
-                <VList 
-                  style={{ height: '100%', maxHeight: '380px' }} 
-                  ref={searchableListRef} 
-                  className="overflow-y-auto pr-1 space-y-1.5"
-                >
-                  {searchedEvents.map((event) => {
-                    const isSelected = activeEvent?.id === event.id;
-                    const eventIcon = 
-                      event.type === 'CHAMPION_KILL' || event.type === 'CHAMPION_SPECIAL_KILL' ? '⚔️' :
-                      event.type === 'CHAMPION_DEATH' ? '💀' :
-                      event.type === 'ELITE_MONSTER_KILL' ? '🐉' :
-                      event.type === 'BUILDING_KILL' ? '🏰' :
-                      event.type === 'SONG' ? '🎵' : '🎮';
-
-                    const displayTitle = event.type === VodEventType.SONG 
-                      ? `${event.title} - ${(event as SongEvent).artist}` 
-                      : event.title;
-
-                    return (
-                      <div 
-                        key={event.id}
-                        onClick={() => handleEventClick(event)}
-                        className={`flex items-center justify-between p-2.5 rounded-xl border transition-all duration-150 cursor-pointer ${
-                          isSelected 
-                            ? 'bg-pink-500/10 border-pink-500/40 text-white shadow-lg shadow-pink-500/5' 
-                            : 'bg-slate-900/30 border-white/5 hover:border-white/10 hover:bg-slate-900/60 text-gray-300 hover:text-white'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-sm select-none">{eventIcon}</span>
-                          <div className="min-w-0">
-                            <div className="text-xs font-semibold truncate pr-2">{displayTitle}</div>
-                            <div className="text-[9px] text-gray-500 capitalize">
-                              {event.type.replace(/_/g, ' ').toLowerCase()}
-                            </div>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-mono font-medium bg-slate-950 px-2 py-0.5 rounded border border-white/5 text-gray-400 whitespace-nowrap">
-                          {formatTimestamp(event.offsetSeconds)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </VList>
-              )}
-            </div>
-          </div>
-        </div>
-
+        <div className="timeline-total"><span>GESAMTLAUFZEIT</span><strong>{formatTime(duration)}</strong></div>
       </div>
-    </div>
+
+      <div className="timeline-panel">
+        <div className="timeline-panel-top"><span><span className="pulse-dot" /> STREAM-ÜBERSICHT</span><span>{games.length} Matches <i /> {events.length} Ereignisse</span></div>
+        <div className="scrub-content">
+          <div className="scrub-times"><span>00:00:00</span><span>STREAM-VERLAUF</span><span>{formatTime(duration)}</span></div>
+          <div className="activity-rail" aria-hidden="true">
+            {activity.map((count, index) => <span key={index} style={{ height: `${Math.max(12, count / maxActivity * 100)}%`, opacity: count ? 0.5 + count / maxActivity * 0.5 : 0.16 }} />)}
+          </div>
+          <div className="seek-zone">
+            <div className="seek-fill" style={{ width: `${Math.min(100, currentTime / duration * 100)}%` }} />
+            <div className="seek-head" style={{ left: `${Math.min(100, currentTime / duration * 100)}%` }} aria-hidden="true" />
+            <input type="range" min="0" max={duration} step="1" value={Math.min(duration, Math.max(0, currentTime))} onChange={event => seek(Number(event.target.value))} aria-label="Wiedergabeposition im Stream" aria-valuetext={formatTime(currentTime)} />
+          </div>
+          <div className="scrub-status"><span><span className="status-square" /> AKTUELLE POSITION <strong>{formatTime(currentTime)}</strong></span><span>Ziehe den Regler, um im Video zu springen</span></div>
+        </div>
+        <div className="chapter-heading"><span>MATCH-KAPITEL</span><span>Auswählen & vergrößern <ArrowUpRight size={13} /></span></div>
+        <div className="chapters">
+          {games.length === 0 && <p className="empty-chapters">Für diesen Stream sind keine Matches erfasst. Die Suchleiste und die Timeline bleiben verfügbar.</p>}
+          {games.map((game, index) => {
+            const isActive = (selectedGame ? selectedGame === game.id : activeMatch?.id === game.id);
+            return <button type="button" key={game.id} className={`chapter ${isActive ? 'is-active' : ''}`} onClick={() => { setSelectedGame(game.id); chooseEvent(game); }} aria-pressed={selectedGame === game.id}>
+              <span className="chapter-index">{String(index + 1).padStart(2, '0')}</span>
+              <ChampionMiniIcon id={game.championId} name={game.championName} />
+              <span className="chapter-name">{game.championName || 'Match'}<small>{formatTime(game.offsetSeconds)} · {formatTime(game.duration)}</small></span>
+              <span className={`chapter-result ${game.won ? 'won' : 'lost'}`}>{game.won ? 'SIEG' : 'NIEDERLAGE'}</span>
+            </button>;
+          })}
+        </div>
+        {selectedMatch && <div className="match-focus" aria-label={`Vergrößerte Timeline für ${selectedMatch.championName}`}>
+          <div className="match-focus-heading"><div><span className="eyebrow">MATCH IM FOKUS <span className="focus-separator">/</span> {formatTime(selectedMatch.offsetSeconds)} – {formatTime(selectedMatch.offsetSeconds + selectedMatch.duration)}</span><h3><ChampionMiniIcon id={selectedMatch.championId} name={selectedMatch.championName} />{selectedMatch.championName || 'Match'} <span>· {matchEvents.length} Ereignisse</span></h3></div><button type="button" onClick={() => setSelectedGame(null)} aria-label="Matchansicht schließen">Gesamten Stream anzeigen <X size={15} /></button></div>
+          <div className="focus-ruler"><span>{formatTime(selectedMatch.offsetSeconds)}</span><span>EREIGNISSE <span className="focus-separator">/</span> MUSIK</span><span>{formatTime(selectedMatch.offsetSeconds + selectedMatch.duration)}</span></div>
+          <div className="focus-markers" ref={markerRailRef}>
+            <div className="focus-baseline" aria-hidden="true" />
+            {markerGroups.map(group => { const first = group.items[0]; const hasDeath = group.items.some(event => event.type === VodEventType.CHAMPION_DEATH); const Icon = hasDeath ? Crosshair : eventIcon(first); return <button type="button" className={`focus-marker ${hasDeath ? 'is-death' : ''} ${selected?.id === first.id ? 'active' : ''}`} key={group.index} style={{ left: `${group.percent}%` }} onClick={() => chooseEvent(first)} title={group.items.map(event => `${formatTime(event.offsetSeconds)} ${event.title}`).join('\n')} aria-label={group.items.length === 1 ? `${eventLabel(first)}: ${first.title}, ${formatTime(first.offsetSeconds)}` : `${group.items.length} Ereignisse ab ${formatTime(first.offsetSeconds)}${hasDeath ? ', darunter Tode' : ''}. Zum ersten springen; alle Ereignisse stehen unten in der Liste.`}><Icon size={15} strokeWidth={2} />{group.items.length > 1 && <span className="marker-count">{group.items.length}</span>}</button>; })}
+            {currentTime >= selectedMatch.offsetSeconds && currentTime <= selectedMatch.offsetSeconds + selectedMatch.duration && <div className="focus-playhead" style={{ left: `${(currentTime - selectedMatch.offsetSeconds) / Math.max(1, selectedMatch.duration) * 100}%` }} aria-hidden="true" />}
+          </div>
+          <div className="focus-songs"><Music2 size={13} aria-hidden="true" /><div className="song-lane">{matchSongs.map(song => { const start = Math.max(song.offsetSeconds, selectedMatch.offsetSeconds); const end = Math.min(song.offsetSeconds + (song.duration || 180), selectedMatch.offsetSeconds + selectedMatch.duration); const left = (start - selectedMatch.offsetSeconds) / Math.max(1, selectedMatch.duration) * 100; const width = (end - start) / Math.max(1, selectedMatch.duration) * 100; return <button type="button" key={song.id} className="song-span" style={{ left: `${left}%`, width: `${width}%` }} title={`${song.title} – ${song.artist} · ${formatTime(song.offsetSeconds)}`} aria-label={`Song ${song.title} von ${song.artist}, ab ${formatTime(song.offsetSeconds)} abspielen`} onClick={() => chooseEvent(song)} />; })}</div></div>
+          <div className="focus-seek"><span>IM MATCH SPRINGEN</span><input type="range" min={selectedMatch.offsetSeconds} max={selectedMatch.offsetSeconds + selectedMatch.duration} step="1" value={Math.max(selectedMatch.offsetSeconds, Math.min(selectedMatch.offsetSeconds + selectedMatch.duration, currentTime))} onChange={event => seek(Number(event.target.value))} aria-label={`Wiedergabeposition im Match ${selectedMatch.championName}`} aria-valuetext={formatTime(currentTime)} /><time>{formatTime(currentTime)}</time></div>
+        </div>}
+      </div>
+
+      {selectedMatch && <div className="focus-match-area"><div className="focus-area-heading"><Crosshair size={15} /> IM FOKUS <span>/</span> MATCH {games.indexOf(selectedMatch) + 1}</div><SelectedMatchCard key={selectedMatch.id} game={selectedMatch} vodId={vodId} /></div>}
+      <div className="details-grid">
+        <section className="detail-card" aria-label="Aktueller Moment">
+          <div className="panel-kicker"><span><Crosshair size={15} /> {selectedMatch ? 'AKTUELLER MOMENT' : 'IM FOKUS'}</span><span className="live-time">{formatTime(selected?.offsetSeconds ?? currentTime)}</span></div>
+          <div className={`detail-main ${selected?.type === VodEventType.CHAMPION_DEATH ? 'is-death' : ''}`}><div className="detail-icon">{selectedChampion ? <ChampionMiniIcon id={selectedChampion.id} name={selectedChampion.name} /> : <SelectedIcon size={26} strokeWidth={1.7} />}</div><span className="eyebrow">{selected ? eventLabel(selected).toUpperCase() : 'STREAM'}</span><h3>{selected?.title || 'Wähle einen Moment aus'}</h3><p>{selected?.description || 'Nutze die Timeline oder die Ereignisliste, um direkt zu einer Stelle im Stream zu springen.'}</p></div>
+          {selected && <button type="button" className="detail-action" onClick={() => seek(selected.offsetSeconds)}><Play size={15} fill="currentColor" /> Ab {formatTime(selected.offsetSeconds)} ansehen <ArrowUpRight size={16} /></button>}
+          <div className="session-strip"><span><Trophy size={15} /> {games.length} Matches</span><span><Flame size={15} /> {wins} Siege</span><span><Activity size={15} /> {events.length} Events</span></div>
+        </section>
+
+        <section className="event-panel" aria-label="Ereignisse im Stream">
+          <div className="panel-kicker"><span><ListFilter size={15} /> EREIGNISSE</span><span className="result-count">{visibleEvents.length} Treffer</span></div>
+          <div className="events-toolbar">
+            <label className="event-search"><Search size={17} /><span className="sr-only">Ereignisse durchsuchen</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Champion, Song oder Ereignis suchen ..." /></label>
+            {selectedGame && <button type="button" className="clear-match" onClick={() => setSelectedGame(null)}>Matchfilter entfernen <X size={13} /></button>}
+            <div className="event-filters" aria-label="Ereignisse filtern">{([['all', 'Alle'], ['combat', 'Kämpfe'], ['objectives', 'Ziele'], ['music', 'Musik']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={filter === id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{label}</button>)}</div>
+          </div>
+          <div className="event-list">
+            {visibleEvents.length === 0 ? <div className="events-empty">Keine Ereignisse gefunden. Passe deine Suche oder Filter an.</div> : <VList style={{ height: 352 }}>
+              {visibleEvents.map(event => { const Icon = eventIcon(event); const champion = championForEvent(event); return <button type="button" key={event.id} className={`event-row ${event.type === VodEventType.CHAMPION_DEATH ? 'is-death' : ''} ${selected?.id === event.id ? 'active' : ''}`} onClick={() => chooseEvent(event)}><span className="event-row-icon">{champion ? <ChampionMiniIcon id={champion.id} name={champion.name} /> : <Icon size={17} />}</span><span className="event-row-text"><strong>{event.title}</strong><small>{eventLabel(event)}{event.type === VodEventType.SONG ? ` · ${(event as SongEvent).artist}` : ''}</small></span><time>{formatTime(event.offsetSeconds)}</time><ArrowUpRight size={15} className="row-arrow" /></button>; })}
+            </VList>}
+          </div>
+        </section>
+      </div>
+    </section>
   );
 };
 

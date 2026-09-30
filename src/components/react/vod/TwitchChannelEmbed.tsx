@@ -54,26 +54,24 @@ const TwitchChannelEmbed: React.FC<TwitchChannelEmbedProps> = ({
         parent: []
       });
 
-      // Start tracking current time every 4 seconds
+      // Keep the external playhead aligned with Twitch playback.
       timeIntervalRef.current = setInterval(() => {
         if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
           try {
             const currentTime = playerRef.current.getCurrentTime();
-            console.log('Current player time:', currentTime);
             currentTimeStore.update(currentTime);
-          } catch (error) {
-            console.warn('Could not get current time from Twitch player:', error);
+          } catch {
+            // The Twitch player can be temporarily unavailable during initialization.
           }
-        } else {
-          console.warn('Player not ready or getCurrentTime not available');
         }
-      }, 4000);
+      }, 1000);
     }
 
     // Subscribe to event bus for seeking
     const unsubscribe = twitchEventBus.subscribe((event) => {
-      if (event && playerRef.current) {
+      if (event !== null && playerRef.current) {
         playerRef.current.seek(event);
+        currentTimeStore.update(event);
       }
     });
 

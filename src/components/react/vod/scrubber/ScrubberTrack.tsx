@@ -3,6 +3,7 @@ import type { ViewportState, TrackConfig } from './types';
 import type { VodEvent, GameEvent, SongEvent } from '../../../../lib/types';
 import { VodEventType } from '../../../../lib/types';
 import SpanBlock from './SpanBlock';
+import { twitchEventBus } from '../../../../lib/store';
 
 interface ScrubberTrackProps {
   config: TrackConfig;

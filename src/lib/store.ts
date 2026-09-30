@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 
 function createEventBus() {
-  const { subscribe, set } = writable(0);
+  const { subscribe, set } = writable<number | null>(null);
 
   return {
     subscribe,
